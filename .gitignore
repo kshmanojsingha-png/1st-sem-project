@@ -1,3 +1,8 @@
+# Large data and model files
+data/
+*.csv
+*.joblib
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
