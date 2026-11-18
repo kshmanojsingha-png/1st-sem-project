@@ -58,6 +58,8 @@ def _local_fallback_predict(review_text: str) -> Dict[str, Any]:
         return {
             "sentiment": "neutral",
             "aspects": [],
+            "confidence": 0.0,
+            "probabilities": {},
             "source": "Local ML Pipeline (Fallback)",
             "success": True,
             "error": None,
@@ -65,9 +67,20 @@ def _local_fallback_predict(review_text: str) -> Dict[str, Any]:
 
     sentiment = predict([clean_text])[0]
     aspects = detect_aspects(clean_text)
+    probs_dict = {}
+    confidence = 0.0
+    try:
+        from ml.predictor import predict_proba
+        probs_dict = predict_proba([clean_text])[0]
+        confidence = round(float(probs_dict.get(sentiment, 0.0)), 4)
+    except Exception:
+        pass
+
     return {
         "sentiment": sentiment,
         "aspects": aspects,
+        "confidence": confidence,
+        "probabilities": probs_dict,
         "source": "Local ML Pipeline (Fallback)",
         "success": True,
         "error": None,
@@ -88,6 +101,8 @@ def predict_single(
         return {
             "sentiment": "neutral",
             "aspects": [],
+            "confidence": 0.0,
+            "probabilities": {},
             "source": "System",
             "success": False,
             "error": "Review text cannot be empty.",
@@ -96,24 +111,28 @@ def predict_single(
     url = (base_url or DEFAULT_API_URL).rstrip("/")
 
     if prefer_api:
-        try:
-            resp = requests.post(
-                f"{url}/predict",
-                json={"review_text": clean_text},
-                timeout=4.0
-            )
-            if resp.status_code == 200:
-                data = resp.json()
-                return {
-                    "sentiment": data.get("sentiment", "neutral"),
-                    "aspects": data.get("aspects", []),
-                    "source": "FastAPI Backend (:8000)",
-                    "success": True,
-                    "error": None,
-                }
-            logger.warning("API predict returned status %s", resp.status_code)
-        except Exception as e:
-            logger.warning("Backend API call failed: %s - using local fallback", e)
+        health = check_api_health(url, timeout=0.8)
+        if health["online"]:
+            try:
+                resp = requests.post(
+                    f"{url}/predict",
+                    json={"review_text": clean_text},
+                    timeout=5.0
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    return {
+                        "sentiment": data.get("sentiment", "neutral"),
+                        "aspects": data.get("aspects", []),
+                        "confidence": data.get("confidence"),
+                        "probabilities": data.get("probabilities", {}),
+                        "source": "FastAPI Backend (:8000)",
+                        "success": True,
+                        "error": None,
+                    }
+                logger.warning("API predict returned status %s", resp.status_code)
+            except Exception as e:
+                logger.info("FastAPI call error (%s); falling back to local ML", e)
 
     # Local fallback
     try:
@@ -123,6 +142,8 @@ def predict_single(
         return {
             "sentiment": "neutral",
             "aspects": [],
+            "confidence": 0.0,
+            "probabilities": {},
             "source": "Failed",
             "success": False,
             "error": str(e),

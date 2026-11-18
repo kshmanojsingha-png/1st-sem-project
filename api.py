@@ -61,6 +61,8 @@ class BatchInput(BaseModel):
 class PredictionResult(BaseModel):
     sentiment: str
     aspects: List[str] = Field(default_factory=list)
+    confidence: Optional[float] = None
+    probabilities: Optional[Dict[str, float]] = None
     error: Optional[str] = None
 
 class BatchPredictionResponse(BaseModel):
@@ -123,17 +125,18 @@ def _load_predictor():
             mod = importlib.import_module(mod_name)
             predict_fn = getattr(mod, "predict")
             batch_fn = getattr(mod, "predict_batch", None)
-            logger.info("Real predictor loaded from %s (batch support: %s)", mod_name, callable(batch_fn))
-            return predict_fn, (batch_fn if callable(batch_fn) else None), True
+            proba_fn = getattr(mod, "predict_proba", None)
+            logger.info("Real predictor loaded from %s (batch: %s, proba: %s)", mod_name, callable(batch_fn), callable(proba_fn))
+            return predict_fn, (batch_fn if callable(batch_fn) else None), (proba_fn if callable(proba_fn) else None), True
         except Exception as e:
             errors.append(f"{mod_name}: {type(e).__name__}: {e}")
 
     logger.warning("!!! REAL PREDICTOR LOAD NAHI HUA - STUB (keyword) MODEL CHAL RAHA HAI !!!")
     for err in errors:
         logger.warning("   import error -> %s", err)
-    return _stub_predict, None, False
+    return _stub_predict, None, None, False
 
-PREDICT_FN, PREDICT_BATCH_FN, PREDICTOR_IS_REAL = _load_predictor()
+PREDICT_FN, PREDICT_BATCH_FN, PREDICT_PROBA_FN, PREDICTOR_IS_REAL = _load_predictor()
 
 def _normalize(raw: Any, review_text: str) -> PredictionResult:
     if isinstance(raw, dict):
@@ -161,7 +164,17 @@ def _normalize(raw: Any, review_text: str) -> PredictionResult:
             logger.warning("Aspect detection fail hua: %s", e)
             aspects = []
 
-    return PredictionResult(sentiment=sentiment, aspects=aspects)
+    res = PredictionResult(sentiment=sentiment, aspects=aspects)
+
+    if PREDICT_PROBA_FN is not None:
+        try:
+            p_dict = PREDICT_PROBA_FN([review_text])[0]
+            res.probabilities = p_dict
+            res.confidence = round(float(p_dict.get(sentiment, 0.0)), 4)
+        except Exception:
+            pass
+
+    return res
 
 def run_prediction(review_text: str) -> PredictionResult:
     try:

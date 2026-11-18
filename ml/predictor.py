@@ -26,3 +26,12 @@ def predict_batch(texts):
         return []
     safe_texts = [t if (isinstance(t, str) and t.strip()) else " " for t in texts]
     return [str(label) for label in _get_model().predict(safe_texts)]
+
+def predict_proba(texts):
+    if not isinstance(texts, list) or len(texts) == 0:
+        return []
+    safe_texts = [t if (isinstance(t, str) and t.strip()) else " " for t in texts]
+    model = _get_model()
+    probs = model.predict_proba(safe_texts)
+    classes = list(model.classes_)
+    return [{cls: float(p) for cls, p in zip(classes, row)} for row in probs]
