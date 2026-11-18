@@ -1,0 +1,27 @@
+Input                                            Expected                     Actual                       Result
+'The quality is excellent and very durable'      ['Quality']                  ['Quality']                  PASS  [positive]
+'Product broke in two days, very poor build'     ['Quality']                  ['Quality']                  PASS  [negative]
+'It is okay, nothing special'                    []                           []                           PASS  [neutral / no-aspect]
+'Good quality but delivery was late'             ['Quality', 'Shipping']      ['Quality', 'Shipping']      PASS  [multi-aspect]
+'Expensive, late delivery and cheap material'    ['Quality', 'Shipping', 'Price'] ['Quality', 'Shipping', 'Price'] PASS  [multi-aspect]
+'Stale and expired when it arrived'              ['Quality', 'Shipping']      ['Quality', 'Shipping']      PASS  [multi-aspect (food)]
+'Fresh taste, great value for money'             ['Quality', 'Price']         ['Quality', 'Price']         PASS  [multi-aspect (food)]
+'Delivery was fast and the package was neat'     ['Shipping']                 ['Shipping']                 PASS  [single aspect]
+'Total waste of money'                           ['Price']                    ['Price']                    PASS  [negative]
+'Nice'                                           []                           []                           PASS  [no-aspect]
+''                                               []                           []                           PASS  [empty input]
+'PRICE is too high'                              ['Price']                    ['Price']                    PASS  [case-insensitive]
+None                                             []                           []                           PASS  [None input]
+123                                              []                           []                           PASS  [non-text input]
+
+14/14 aspect tests passed
+
+Sentiment tests using ml.predictor.predict
+Input                                            Expected     Actual       Result
+'Absolutely love it, works perfectly'            positive     positive     PASS
+'Delicious and fresh, will buy again'            positive     positive     PASS
+'Terrible, waste of money'                       negative     negative     PASS
+'Awful taste, never buying this again'           negative     negative     PASS
+'It is fine, average product'                    neutral      neutral      PASS
+
+5/5 sentiment tests passed (a FAIL on 'neutral' is common for TF-IDF models - mention it under limitations)

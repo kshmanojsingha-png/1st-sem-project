@@ -1,0 +1,7 @@
+review,direct_model,predict_function,match
+"Absolutely loved it, great taste and fresh.",positive,positive,True
+Terrible. It arrived broken and tasted awful.,negative,negative,True
+"It was okay, nothing special.",neutral,neutral,True
+"Not good at all, I will never buy this again.",negative,negative,True
+"Not bad, though a bit pricey for what you get.",neutral,neutral,True
+Delivery was slow but the product itself is excellent.,positive,positive,True

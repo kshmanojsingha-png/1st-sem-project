@@ -20,3 +20,9 @@ def predict(texts):
         if not isinstance(t, str) or not t.strip():
             raise ValueError("Review text is empty. Please enter a review.")
     return [str(label) for label in _get_model().predict(texts)]
+
+def predict_batch(texts):
+    if not isinstance(texts, list) or len(texts) == 0:
+        return []
+    safe_texts = [t if (isinstance(t, str) and t.strip()) else " " for t in texts]
+    return [str(label) for label in _get_model().predict(safe_texts)]

@@ -1,52 +1,28 @@
-# Large data and model files
-data/
-*.csv
-*.joblib
+# Virtual environment
+venv/
+.venv/
+env/
 
-# Byte-compiled / optimized / DLL files
+# Python cache & Jupyter
 __pycache__/
 *.py[cod]
 *$py.class
+*.ipynb_checkpoints/
 
-# Virtual environments
-venv/
-env/
-.env
-.venv/
-ENV/
+# Large raw datasets (> 100 MB rejected by GitHub)
+Reviews.csv
+amazon_products.csv
+data/Reviews.csv
 
-# Distribution / packaging
-.eggs/
-dist/
-build/
-*.egg-info/
-*.egg
+# Old starter directory
+1st-sem-project/
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.coverage
-.coverage.*
-.cache
-*.cover
-*.py,cover
-.pytest_cache/
+# Temporary / log files
+*.tmp
+outputs/uvicorn_*.txt
 
-# IDE / editor files
+# IDE / System
 .vscode/
 .idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# OS files
 .DS_Store
 Thumbs.db
-
-# Jupyter Notebooks checkpoints
-.ipynb_checkpoints/
-
-# Logs
-*.log

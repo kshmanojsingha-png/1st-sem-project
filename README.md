@@ -1,129 +1,100 @@
-# 🍽️ Amazon Food Reviews — Sentiment Analysis
+# ReviewSense - Multi-Aspect Product Review & Customer Sentiment Hub
+**Group D** | Atik Hussain, Biki Sharmah, Simran Saikia, Manoj
 
-A machine learning project that classifies Amazon food product reviews into **Positive**, **Neutral**, or **Negative** sentiments using a TF-IDF + Logistic Regression pipeline.
+## 1. Overview
+ReviewSense reads a product review and predicts whether it is positive, neutral or negative, and tags which aspects it talks about (Quality, Shipping, Price).
 
-Built as a 1st Semester ML project.
+## 2. Features
+- Type one review and get its predicted sentiment (positive / neutral / negative)
+- Rule-based aspect tags: Quality, Shipping, Price (a review can have several or none)
+- CSV batch analysis with a results table and download
+- Dashboard: sentiment donut chart, aspect charts, aspect filter
+- FastAPI endpoint for batch predictions
 
----
-
-## 📁 Project Structure
-
+## 3. Project Structure
 ```
-1st-sem-project/
-├── ml/
-│   ├── data.py              # Data loading & train/test split
-│   ├── preprocessing.py     # Text cleaning (HTML stripping, negation handling)
-│   ├── train.py             # Model training & saving pipeline
-│   ├── evaluate.py          # Metrics, classification report, confusion matrix
-│   ├── predictor.py         # Inference interface (predict function)
-│   └── check_integration.py # Integration & input validation tests
-├── models/
-│   └── sentiment_pipeline.joblib   # Trained model (TF-IDF + LogReg)
-├── outputs/
-│   ├── metrics.json                # Accuracy, F1 scores
-│   ├── classification_report.txt   # Per-class precision/recall/F1
-│   ├── confusion_matrix.csv        # Confusion matrix (CSV)
-│   └── confusion_matrix.png        # Confusion matrix (plot)
-├── data/
-│   └── Reviews.csv                 # Amazon Fine Food Reviews dataset
-├── day1.ipynb                      # Day 1: EDA & baseline
-├── day2.ipynb                      # Day 2: Hyperparameter tuning
-├── requirements.txt
-└── README.md
+ml/train.py                      trains the model and saves it with Joblib
+ml/evaluate.py                   held-out test evaluation (Macro-F1, Weighted-F1, confusion matrix)
+ml/predictor.py                  loads the saved model; predict(text) returns the sentiment
+ml/test_cases.py                 model test cases
+app.py                           Streamlit web page
+simran_all_in_one.py             aspect tags, charts, evaluation visuals, tests, documentation generator
 ```
 
----
-
-## 🧠 Model & Approach
-
-| Component | Detail |
-|---|---|
-| **Dataset** | Amazon Fine Food Reviews (`Reviews.csv`) |
-| **Sample size** | 30,000 reviews (stratified split) |
-| **Labels** | `negative` (score ≤ 2), `neutral` (score = 3), `positive` (score ≥ 4) |
-| **Text Preprocessing** | Lowercase, HTML tag removal, negation expansion (`n't → not`), stop word filtering (negations preserved) |
-| **Vectorizer** | TF-IDF with bigrams (`ngram_range=(1,2)`), `min_df=5`, `max_features=50,000` |
-| **Classifier** | Logistic Regression (`C=1.0`, `class_weight="balanced"`, `max_iter=1000`) |
-| **Train/Test split** | 80% / 20% (stratified) |
-
----
-
-## 📊 Results
-
-| Metric | Score |
-|---|---|
-| **Accuracy** | 80.9% |
-| **Macro F1** | 0.626 |
-| **Weighted F1** | 0.822 |
-
-### Per-class Performance
-
-| Class | Precision | Recall | F1-score | Support |
-|---|---|---|---|---|
-| Negative | 0.617 | 0.706 | 0.659 | 865 |
-| Neutral | 0.266 | 0.401 | 0.320 | 444 |
-| Positive | 0.936 | 0.867 | 0.900 | 4691 |
-
-### Confusion Matrix
-
-![Confusion Matrix](confusion_matrix.png)
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Python 3.10+
-- Install dependencies:
-
-```bash
+## 4. Installation
+```
 pip install -r requirements.txt
 ```
 
-### Train the Model
-
-```bash
-python -m ml.train
+## 5. How to Run
+```
+python ml/train.py      # train and save the model
+python ml/evaluate.py   # evaluate on the held-out test set
+streamlit run app.py
+uvicorn backend.api:app --reload   # optional API
 ```
 
-### Evaluate the Model
+## 6. Methodology
+- **Dataset:** Amazon Fine Food Reviews (Kaggle), accessed 15 November 2026.
+- **Size used:** 568,454 reviews. Class distribution: negative 82,037 (14.4%), neutral 42,640 (7.5%), positive 443,777 (78.1%).
+- **Labels:** only the review text and the star rating are used; rating 1-2 = negative, 3 = neutral, 4-5 = positive.
+- **Model:** TF-IDF + Logistic Regression (scikit-learn), saved with Joblib.
+- **Metrics:** Macro-F1 (main metric, because the classes are imbalanced), Weighted-F1 and the confusion matrix, all on a held-out test set.
+- **Aspect detection:** rule-based whole-word keyword matching. A review can have several aspects or none. It shows the topic, not the sentiment about that topic.
 
-```bash
-python -m ml.evaluate
+## 7. Results
+Test set: 6,000 reviews. **Macro-F1 = 0.626**, **Weighted-F1 = 0.822**, accuracy = 0.809.
+
+| Class | Precision | Recall | F1 | Support |
+| --- | --- | --- | --- | --- |
+| negative | 0.617 | 0.706 | 0.659 | 865 |
+| neutral | 0.266 | 0.401 | 0.320 | 444 |
+| positive | 0.936 | 0.867 | 0.900 | 4691 |
+
+![Confusion matrix](report_assets/confusion_matrix.png)
+
+![Class distribution](report_assets/class_distribution.png)
+
+![Screenshot 2026-11-18 044731](screenshots/Screenshot 2026-11-18 044731.png)
+![Screenshot 2026-11-18 044757](screenshots/Screenshot 2026-11-18 044757.png)
+![Screenshot 2026-11-18 044821](screenshots/Screenshot 2026-11-18 044821.png)
+
+## 8. Testing
+```
+Input                                            Expected                     Actual                       Result
+'The quality is excellent and very durable'      ['Quality']                  ['Quality']                  PASS  [positive]
+'Product broke in two days, very poor build'     ['Quality']                  ['Quality']                  PASS  [negative]
+'It is okay, nothing special'                    []                           []                           PASS  [neutral / no-aspect]
+'Good quality but delivery was late'             ['Quality', 'Shipping']      ['Quality', 'Shipping']      PASS  [multi-aspect]
+'Expensive, late delivery and cheap material'    ['Quality', 'Shipping', 'Price'] ['Quality', 'Shipping', 'Price'] PASS  [multi-aspect]
+'Stale and expired when it arrived'              ['Quality', 'Shipping']      ['Quality', 'Shipping']      PASS  [multi-aspect (food)]
+'Fresh taste, great value for money'             ['Quality', 'Price']         ['Quality', 'Price']         PASS  [multi-aspect (food)]
+'Delivery was fast and the package was neat'     ['Shipping']                 ['Shipping']                 PASS  [single aspect]
+'Total waste of money'                           ['Price']                    ['Price']                    PASS  [negative]
+'Nice'                                           []                           []                           PASS  [no-aspect]
+''                                               []                           []                           PASS  [empty input]
+'PRICE is too high'                              ['Price']                    ['Price']                    PASS  [case-insensitive]
+None                                             []                           []                           PASS  [None input]
+123                                              []                           []                           PASS  [non-text input]
+
+14/14 aspect tests passed
+
+Sentiment tests using ml.predictor.predict
+Input                                            Expected     Actual       Result
+'Absolutely love it, works perfectly'            positive     positive     PASS
+'Delicious and fresh, will buy again'            positive     positive     PASS
+'Terrible, waste of money'                       negative     negative     PASS
+'Awful taste, never buying this again'           negative     negative     PASS
+'It is fine, average product'                    neutral      neutral      PASS
+
+5/5 sentiment tests passed (a FAIL on 'neutral' is common for TF-IDF models - mention it under limitations)
 ```
 
-### Run Predictions
+## 9. Limitations & Future Work
+- Keyword rules miss synonyms and sarcasm, and ignore negation ("not durable" is still tagged Quality).
+- Aspect tags show the topic, not the sentiment about that topic.
+- A TF-IDF model has no sense of word order, so the neutral class is the hardest.
+- Future work: BERT-style model, aspect-level sentiment, more languages.
 
-```python
-from ml.predictor import predict
-
-reviews = ["Absolutely loved it!", "Terrible product, never buying again."]
-print(predict(reviews))
-# ['positive', 'negative']
-```
-
-### Run Integration Check
-
-```bash
-python ml/check_integration.py
-```
-
----
-
-## 🛠️ Dependencies
-
-Key libraries used:
-- `scikit-learn` — ML pipeline, TF-IDF, Logistic Regression
-- `pandas` — Data loading and manipulation
-- `numpy` — Numerical operations
-- `matplotlib` — Confusion matrix visualization
-- `joblib` — Model serialization
-- `jupyter` / `ipython` — Notebook-based EDA
-
-See [`requirements.txt`](requirements.txt) for the full list.
-
----
-
-## 👤 Author
-
-- GitHub: [@kshmanojsingha-png](https://github.com/kshmanojsingha-png)
+## 10. Team
+Manoj - data and ML model | Atik - Streamlit UI | Biki - integration and support | Simran - testing, README, PPT, documentation
