@@ -112,7 +112,7 @@ with st.sidebar:
     backend_url = st.session_state["backend_url"]
     health = api_client.check_api_health(backend_url)
 
-    st.markdown("<span style='font-size:11px; font-weight:600; color:#94A3B8; text-transform:uppercase; letter-spacing:0.06em;'>System Status</span>", unsafe_allow_html=True)
+    st.markdown("<span style='font-size:15px; font-weight:600; color:#94A3B8; text-transform:uppercase; letter-spacing:0.06em;'>System Status</span>", unsafe_allow_html=True)
     if health["online"]:
         st.markdown(f"""
         <div class="status-pill status-pill-online" style="margin-top:6px; margin-bottom:12px; width:100%; justify-content:center;">
@@ -142,8 +142,8 @@ with st.sidebar:
     st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
     st.markdown("""
     <div style='padding: 12px; border-radius: 8px; background: #111827; border: 1px solid #1E293B;'>
-        <div style='font-size: 11px; font-weight: 600; color: #F8FAFC;'>ReviewSense v2.1 Enterprise</div>
-        <div style='font-size: 11px; color: #64748B; margin-top: 2px;'>Scikit-Learn • FastAPI • Streamlit</div>
+        <div style='font-size: 15px; font-weight: 600; color: #F8FAFC;'>ReviewSense v2.1 Enterprise</div>
+        <div style='font-size: 14px; color: #64748B; margin-top: 2px;'>Scikit-Learn • FastAPI • Streamlit</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -388,13 +388,13 @@ elif nav_selection == "Single Review Analysis":
                         st.markdown(f"""
                         <div class="saas-card-static" style="border-color:{s_border}; background: {s_bg};">
                             <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <span style="font-size:11.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:#94A3B8;">Predicted Sentiment</span>
-                                <span class="status-pill status-pill-online" style="font-size:11px; padding:3px 8px;">{source}</span>
+                                <span style="font-size:15.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:#94A3B8;">Predicted Sentiment</span>
+                                <span class="status-pill status-pill-online" style="font-size:14px; padding:3px 8px;">{source}</span>
                             </div>
                             <div style="font-size:32px; font-weight:800; color:{s_color}; margin: 12px 0 6px 0; font-family:'Plus Jakarta Sans';">
                                 {s_icon} {sentiment.upper()}
                             </div>
-                            <div style="font-size:13px; color:#F8FAFC;">
+                            <div style="font-size:17.5px; color:#F8FAFC;">
                                 Decision Confidence: <b>{conf_str}</b>
                             </div>
                         </div>
@@ -403,7 +403,7 @@ elif nav_selection == "Single Review Analysis":
                     with r_col2:
                         # Aspect Badges
                         st.markdown("<div class='saas-card-static'>", unsafe_allow_html=True)
-                        st.markdown("<span style='font-size:11.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:#94A3B8;'>Aspect Dimensions</span>", unsafe_allow_html=True)
+                        st.markdown("<span style='font-size:15.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:#94A3B8;'>Aspect Dimensions</span>", unsafe_allow_html=True)
 
                         aspect_pills_html = ""
                         for asp, asp_cls in [("Quality", "aspect-quality"), ("Shipping", "aspect-shipping"), ("Price", "aspect-price")]:
@@ -415,7 +415,7 @@ elif nav_selection == "Single Review Analysis":
                         st.markdown(f"<div style='margin-top:12px;'>{aspect_pills_html}</div>", unsafe_allow_html=True)
 
                         st.markdown(f"""
-                        <div style="margin-top:14px; font-size:12px; color:#94A3B8;">
+                        <div style="margin-top:14px; font-size:16.5px; color:#94A3B8;">
                             <b>Summary:</b> Review touches upon <b>{len(aspects)}</b> business dimension{'s' if len(aspects) != 1 else ''}.
                         </div>
                         """, unsafe_allow_html=True)
@@ -424,7 +424,7 @@ elif nav_selection == "Single Review Analysis":
                     # Output Row 2: Probabilities Distribution & Text Metrics
                     if probs:
                         st.markdown("<div class='saas-card-static'>", unsafe_allow_html=True)
-                        st.markdown("<span style='font-size:11.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:#94A3B8;'>Model Probability Distribution (Softmax)</span>", unsafe_allow_html=True)
+                        st.markdown("<span style='font-size:15.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:#94A3B8;'>Model Probability Distribution (Softmax)</span>", unsafe_allow_html=True)
 
                         prob_pos = probs.get("positive", 0.0) * 100
                         prob_neu = probs.get("neutral", 0.0) * 100
@@ -547,7 +547,7 @@ elif nav_selection == "Batch Review Analysis":
 
                 def update_prog(ratio, processed, total):
                     prog_bar.progress(min(1.0, ratio))
-                    status_box.markdown(f"<span style='font-size:12px; color:#94A3B8;'>Processed {processed:,} of {total:,} reviews...</span>", unsafe_allow_html=True)
+                    status_box.markdown(f"<span style='font-size:16px; color:#94A3B8;'>Processed {processed:,} of {total:,} reviews...</span>", unsafe_allow_html=True)
 
                 with st.spinner("Processing batch through ReviewSense AI engine..."):
                     results_list, exec_source = api_client.predict_batch(
@@ -558,7 +558,7 @@ elif nav_selection == "Batch Review Analysis":
                     )
 
                 prog_bar.progress(1.0)
-                status_box.markdown(f"<span style='font-size:12px; color:#22C55E; font-weight:600;'>✓ Finished {len(results_list):,} predictions via {exec_source}</span>", unsafe_allow_html=True)
+                status_box.markdown(f"<span style='font-size:16px; color:#22C55E; font-weight:600;'>✓ Finished {len(results_list):,} predictions via {exec_source}</span>", unsafe_allow_html=True)
 
                 # Attach Results to DataFrame
                 out_df = df_to_analyze.copy()
@@ -748,13 +748,13 @@ elif nav_selection == "Aspect-Based Insights":
                     <span class="aspect-pill aspect-quality">🏷️ Quality</span>
                 </div>
                 <div class="kpi-value">{q_tot:,}</div>
-                <div style="font-size:12px; color:#94A3B8; margin-bottom:12px;">Total Customer Mentions</div>
-                <div style="font-size:12.5px; line-height:1.8;">
+                <div style="font-size:15.5px; color:#94A3B8; margin-bottom:12px;">Total Customer Mentions</div>
+                <div style="font-size:16.5px; line-height:1.8;">
                     <span style="color:#22C55E;">● Positive: <b>{q_pos:,}</b> ({(q_pos/q_tot*100 if q_tot else 0):.1f}%)</span><br>
                     <span style="color:#F87171;">● Negative: <b>{q_neg:,}</b> ({(q_neg/q_tot*100 if q_tot else 0):.1f}%)</span><br>
                     <span style="color:#FBBF24;">● Neutral: <b>{q_neu:,}</b> ({(q_neu/q_tot*100 if q_tot else 0):.1f}%)</span>
                 </div>
-                <div style="margin-top:12px; font-size:11px; color:#64748B;">
+                <div style="margin-top:12px; font-size:14.5px; color:#64748B;">
                     Keywords: <i>quality, material, build, durable, fresh, stale, taste</i>
                 </div>
             </div>
@@ -768,13 +768,13 @@ elif nav_selection == "Aspect-Based Insights":
                     <span class="aspect-pill aspect-shipping">🏷️ Shipping</span>
                 </div>
                 <div class="kpi-value">{s_tot:,}</div>
-                <div style="font-size:12px; color:#94A3B8; margin-bottom:12px;">Total Customer Mentions</div>
-                <div style="font-size:12.5px; line-height:1.8;">
+                <div style="font-size:15.5px; color:#94A3B8; margin-bottom:12px;">Total Customer Mentions</div>
+                <div style="font-size:16.5px; line-height:1.8;">
                     <span style="color:#22C55E;">● Positive: <b>{s_pos:,}</b> ({(s_pos/s_tot*100 if s_tot else 0):.1f}%)</span><br>
                     <span style="color:#F87171;">● Negative: <b>{s_neg:,}</b> ({(s_neg/s_tot*100 if s_tot else 0):.1f}%)</span><br>
                     <span style="color:#FBBF24;">● Neutral: <b>{s_neu:,}</b> ({(s_neu/s_tot*100 if s_tot else 0):.1f}%)</span>
                 </div>
-                <div style="margin-top:12px; font-size:11px; color:#64748B;">
+                <div style="margin-top:12px; font-size:14.5px; color:#64748B;">
                     Keywords: <i>shipping, delivery, arrived, courier, late, packaging</i>
                 </div>
             </div>
@@ -788,13 +788,13 @@ elif nav_selection == "Aspect-Based Insights":
                     <span class="aspect-pill aspect-price">🏷️ Price</span>
                 </div>
                 <div class="kpi-value">{p_tot:,}</div>
-                <div style="font-size:12px; color:#94A3B8; margin-bottom:12px;">Total Customer Mentions</div>
-                <div style="font-size:12.5px; line-height:1.8;">
+                <div style="font-size:15.5px; color:#94A3B8; margin-bottom:12px;">Total Customer Mentions</div>
+                <div style="font-size:16.5px; line-height:1.8;">
                     <span style="color:#22C55E;">● Positive: <b>{p_pos:,}</b> ({(p_pos/p_tot*100 if p_tot else 0):.1f}%)</span><br>
                     <span style="color:#F87171;">● Negative: <b>{p_neg:,}</b> ({(p_neg/p_tot*100 if p_tot else 0):.1f}%)</span><br>
                     <span style="color:#FBBF24;">● Neutral: <b>{p_neu:,}</b> ({(p_neu/p_tot*100 if p_tot else 0):.1f}%)</span>
                 </div>
-                <div style="margin-top:12px; font-size:11px; color:#64748B;">
+                <div style="margin-top:12px; font-size:14.5px; color:#64748B;">
                     Keywords: <i>price, cost, expensive, cheap, value for money, budget</i>
                 </div>
             </div>
@@ -872,8 +872,8 @@ elif nav_selection == "Model Performance":
     with t_c1:
         st.markdown("""
         <div class="saas-card-static">
-            <span style="font-size:11.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:#94A3B8;">Model Pipeline Specifications</span>
-            <div style="margin-top:12px; font-size:13px; color:#F8FAFC; line-height:1.9;">
+            <span style="font-size:15.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:#94A3B8;">Model Pipeline Specifications</span>
+            <div style="margin-top:12px; font-size:16.5px; color:#F8FAFC; line-height:1.9;">
                 • <b>Vectorization:</b> TF-IDF (Term Frequency-Inverse Document Frequency)<br>
                 • <b>N-gram Range:</b> Unigram & Bigram <code>(1, 2)</code><br>
                 • <b>Max Features:</b> 50,000 vocabulary tokens<br>
@@ -886,8 +886,8 @@ elif nav_selection == "Model Performance":
     with t_c2:
         st.markdown("""
         <div class="saas-card-static">
-            <span style="font-size:11.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:#94A3B8;">Automated Regression Testing</span>
-            <div style="margin-top:12px; font-size:13px; color:#F8FAFC; line-height:1.9;">
+            <span style="font-size:15.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:#94A3B8;">Automated Regression Testing</span>
+            <div style="margin-top:12px; font-size:16.5px; color:#F8FAFC; line-height:1.9;">
                 • <b>Aspect Keyword Tests:</b> <span style="color:#22C55E;">14 / 14 PASSED (100%)</span><br>
                 • <b>Sentiment Edge Tests:</b> <span style="color:#22C55E;">5 / 5 PASSED (100%)</span><br>
                 • <b>Input Sanitization:</b> Empty string, whitespace, non-text rejected cleanly<br>
@@ -909,7 +909,7 @@ elif nav_selection == "About Project":
     st.markdown("""
     <div class="saas-card-static">
         <h3 style="margin-top:0; color:#F8FAFC; font-size:18px;">Executive Summary</h3>
-        <p style="color:#94A3B8; font-size:13.5px; line-height:1.7;">
+        <p style="color:#94A3B8; font-size:17.5px; line-height:1.7;">
         <b>ReviewSense</b> addresses the core limitation of star-rating based customer feedback systems.
         A 3-star review often conceals divergent experiences (e.g. delicious food accompanied by delayed logistics).
         By combining Scikit-Learn TF-IDF machine learning pipelines with high-recall rule-based aspect extraction,
@@ -926,7 +926,7 @@ elif nav_selection == "About Project":
         <div class="saas-card-static">
             <div style="font-size:24px; margin-bottom:8px;">🎨</div>
             <div style="font-weight:700; color:#F8FAFC; font-size:15px; margin-bottom:6px;">Streamlit Frontend</div>
-            <p style="color:#94A3B8; font-size:12.5px; line-height:1.6;">
+            <p style="color:#94A3B8; font-size:16px; line-height:1.6;">
             Linear/Vercel-inspired dark interface with Plotly charting, live health indicators, and resilient local fallback.
             </p>
         </div>
@@ -937,7 +937,7 @@ elif nav_selection == "About Project":
         <div class="saas-card-static">
             <div style="font-size:24px; margin-bottom:8px;">⚡</div>
             <div style="font-weight:700; color:#F8FAFC; font-size:15px; margin-bottom:6px;">FastAPI Backend</div>
-            <p style="color:#94A3B8; font-size:12.5px; line-height:1.6;">
+            <p style="color:#94A3B8; font-size:16px; line-height:1.6;">
             High-throughput REST API server supporting single and batch vectorization on port 8000 with CORS middleware.
             </p>
         </div>
@@ -948,7 +948,7 @@ elif nav_selection == "About Project":
         <div class="saas-card-static">
             <div style="font-size:24px; margin-bottom:8px;">🧠</div>
             <div style="font-weight:700; color:#F8FAFC; font-size:15px; margin-bottom:6px;">NLP & ML Engine</div>
-            <p style="color:#94A3B8; font-size:12.5px; line-height:1.6;">
+            <p style="color:#94A3B8; font-size:16px; line-height:1.6;">
             TF-IDF bigram vectorizer paired with balanced Logistic Regression and 50+ domain regex aspect patterns.
             </p>
         </div>

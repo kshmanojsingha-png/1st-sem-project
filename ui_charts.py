@@ -1,6 +1,7 @@
 """
 ReviewSense - UI Chart Components
 Plotly-based charts matching the Linear/Vercel dark SaaS design system
+Configured for Projector Presentation Readability (15-18px information text)
 """
 
 import pandas as pd
@@ -12,21 +13,22 @@ from ui_theme import SENTIMENT_COLORS, ASPECT_COLORS
 BASE_LAYOUT = dict(
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
-    font=dict(family="Inter, sans-serif", color="#94A3B8", size=12),
-    margin=dict(l=16, r=16, t=36, b=16),
+    font=dict(family="Inter, sans-serif", color="#94A3B8", size=15),
+    margin=dict(l=24, r=24, t=44, b=24),
     legend=dict(
         orientation="h",
         yanchor="bottom",
         y=1.02,
         xanchor="right",
         x=1,
-        font=dict(size=11, color="#94A3B8"),
+        font=dict(size=15, color="#F8FAFC"),
         bgcolor="rgba(0,0,0,0)",
     ),
     hoverlabel=dict(
         bgcolor="#1C2537",
         font_color="#F8FAFC",
         font_family="Inter, sans-serif",
+        font_size=16,
         bordercolor="#334155",
     ),
 )
@@ -57,7 +59,7 @@ def create_sentiment_donut(df: pd.DataFrame, sentiment_col: str = "sentiment") -
                 ),
                 textinfo="percent",
                 hoverinfo="label+value+percent",
-                textfont=dict(size=12, color="#F8FAFC"),
+                textfont=dict(size=16, color="#F8FAFC", family="Inter, sans-serif"),
                 sort=False,
             )
         ]
@@ -67,7 +69,7 @@ def create_sentiment_donut(df: pd.DataFrame, sentiment_col: str = "sentiment") -
         **BASE_LAYOUT,
         annotations=[
             dict(
-                text=f"<span style='font-size:20px; font-weight:700; color:#F8FAFC;'>{total:,}</span><br><span style='font-size:11px; color:#64748B; text-transform:uppercase;'>Reviews</span>",
+                text=f"<span style='font-size:28px; font-weight:700; color:#F8FAFC;'>{total:,}</span><br><span style='font-size:14px; color:#94A3B8; text-transform:uppercase; letter-spacing:0.06em;'>Reviews</span>",
                 x=0.5,
                 y=0.5,
                 font=dict(family="Plus Jakarta Sans, sans-serif"),
@@ -118,7 +120,7 @@ def create_aspect_bar(df: pd.DataFrame, aspects_col: str = "aspects") -> go.Figu
                 marker=dict(color=colors, line=dict(width=0)),
                 text=counts["count"].apply(lambda v: f"{int(v):,}"),
                 textposition="outside",
-                textfont=dict(size=11, color="#94A3B8"),
+                textfont=dict(size=15, color="#F8FAFC", family="Inter, sans-serif"),
             )
         ]
     )
@@ -135,11 +137,11 @@ def create_aspect_bar(df: pd.DataFrame, aspects_col: str = "aspects") -> go.Figu
             showgrid=True,
             gridcolor="#1E293B",
             zeroline=False,
-            tickfont=dict(color="#64748B", size=10),
+            tickfont=dict(color="#94A3B8", size=15),
         ),
         yaxis=dict(
             autorange="reversed",
-            tickfont=dict(color="#F8FAFC", size=12, family="Plus Jakarta Sans"),
+            tickfont=dict(color="#F8FAFC", size=16, family="Inter, sans-serif"),
         ),
     )
     return fig
@@ -183,7 +185,7 @@ def create_aspect_sentiment_grouped_bar(
                 marker=dict(color=SENTIMENT_COLORS[col_name], line=dict(width=0)),
                 text=grouped[col_name].apply(lambda v: f"{int(v):,}" if v > 0 else ""),
                 textposition="auto",
-                textfont=dict(size=11, color="#0B0F19"),
+                textfont=dict(size=14, color="#0B0F19", family="Inter, sans-serif"),
             )
         )
 
@@ -197,13 +199,13 @@ def create_aspect_sentiment_grouped_bar(
             y=0.98,
         ),
         xaxis=dict(
-            tickfont=dict(color="#F8FAFC", size=12, family="Plus Jakarta Sans"),
+            tickfont=dict(color="#F8FAFC", size=16, family="Inter, sans-serif"),
             gridcolor="#1E293B",
         ),
         yaxis=dict(
             gridcolor="#1E293B",
             zeroline=False,
-            tickfont=dict(color="#64748B", size=10),
+            tickfont=dict(color="#94A3B8", size=15),
         ),
     )
     return fig
@@ -239,7 +241,7 @@ def create_time_trend_chart(df: pd.DataFrame, time_col: str = "Time", sentiment_
                     y=grouped[col_name],
                     mode="lines",
                     name=s_label,
-                    line=dict(color=SENTIMENT_COLORS[col_name], width=2.5, shape="spline"),
+                    line=dict(color=SENTIMENT_COLORS[col_name], width=3.0, shape="spline"),
                     fill="tozeroy" if col_name == "positive" else None,
                     fillcolor="rgba(34, 197, 94, 0.05)" if col_name == "positive" else None,
                 )
@@ -255,12 +257,12 @@ def create_time_trend_chart(df: pd.DataFrame, time_col: str = "Time", sentiment_
         ),
         xaxis=dict(
             gridcolor="#1E293B",
-            tickfont=dict(color="#64748B", size=10),
+            tickfont=dict(color="#94A3B8", size=15),
         ),
         yaxis=dict(
             gridcolor="#1E293B",
             zeroline=False,
-            tickfont=dict(color="#64748B", size=10),
+            tickfont=dict(color="#94A3B8", size=15),
         ),
     )
     return fig
@@ -299,13 +301,13 @@ def create_rating_sentiment_matrix(df: pd.DataFrame, score_col: str = "Score", s
             y=0.98,
         ),
         xaxis=dict(
-            tickfont=dict(color="#F8FAFC", size=12),
+            tickfont=dict(color="#F8FAFC", size=16),
             gridcolor="#1E293B",
         ),
         yaxis=dict(
             gridcolor="#1E293B",
             zeroline=False,
-            tickfont=dict(color="#64748B", size=10),
+            tickfont=dict(color="#94A3B8", size=15),
         ),
     )
     return fig
@@ -326,7 +328,7 @@ def create_confusion_matrix_heatmap(cm_df: pd.DataFrame) -> go.Figure:
                 dict(
                     x=labels[j],
                     y=labels[i],
-                    text=f"<span style='font-size:16px; font-weight:700;'>{val:,}</span><br><span style='font-size:11px; opacity:0.75;'>{pct:.1f}%</span>",
+                    text=f"<span style='font-size:22px; font-weight:700;'>{val:,}</span><br><span style='font-size:15px; opacity:0.85;'>{pct:.1f}%</span>",
                     font=dict(color="#F8FAFC", family="Plus Jakarta Sans"),
                     showarrow=False,
                 )
@@ -357,13 +359,13 @@ def create_confusion_matrix_heatmap(cm_df: pd.DataFrame) -> go.Figure:
             y=0.98,
         ),
         xaxis=dict(
-            title=dict(text="Predicted Label", font=dict(size=12, color="#94A3B8")),
-            tickfont=dict(color="#F8FAFC", size=12),
+            title=dict(text="Predicted Label", font=dict(size=15, color="#94A3B8")),
+            tickfont=dict(color="#F8FAFC", size=16),
         ),
         yaxis=dict(
-            title=dict(text="Actual True Label", font=dict(size=12, color="#94A3B8")),
+            title=dict(text="Actual True Label", font=dict(size=15, color="#94A3B8")),
             autorange="reversed",
-            tickfont=dict(color="#F8FAFC", size=12),
+            tickfont=dict(color="#F8FAFC", size=16),
         ),
     )
     return fig
@@ -391,14 +393,14 @@ def create_classification_metrics_bar() -> go.Figure:
             y=0.98,
         ),
         xaxis=dict(
-            tickfont=dict(color="#F8FAFC", size=12),
+            tickfont=dict(color="#F8FAFC", size=16),
             gridcolor="#1E293B",
         ),
         yaxis=dict(
             range=[0, 1.05],
             gridcolor="#1E293B",
             zeroline=False,
-            tickfont=dict(color="#64748B", size=10),
+            tickfont=dict(color="#94A3B8", size=15),
         ),
     )
     return fig

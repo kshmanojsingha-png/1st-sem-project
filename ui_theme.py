@@ -1,6 +1,7 @@
 """
 ReviewSense - UI Theme & Design System
 Linear / Vercel / Stripe-inspired Dark Theme System
+Configured for Projector Presentation Readability (15-19px Information Typography)
 """
 
 # Color Palette Constants
@@ -37,14 +38,21 @@ CUSTOM_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
 
-/* Base Styles */
+/* Base Styles - Projector-Friendly Informational Scale */
 html, body, [class*="css"] {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     color: #F8FAFC;
 }
 
+/* Informational Paragraphs & Body Content */
+p, span, li, label, .stMarkdown p, .stMarkdown span, .stMarkdown li {
+    font-size: 17.5px;
+    line-height: 1.65;
+}
+
+/* STRICT RULE: DO NOT MODIFY HEADINGS APPEARANCE */
 h1, h2, h3, h4, .font-heading {
-    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important;
     letter-spacing: -0.02em;
 }
 
@@ -94,15 +102,15 @@ h1, h2, h3, h4, .font-heading {
 
 .brand-text-title {
     font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 17px;
-    font-weight: 700;
+    font-size: 17px !important;
+    font-weight: 700 !important;
     color: #F8FAFC;
     letter-spacing: -0.01em;
     line-height: 1.2;
 }
 
 .brand-text-subtitle {
-    font-size: 11px;
+    font-size: 14px !important;
     color: #94A3B8;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -115,7 +123,7 @@ h1, h2, h3, h4, .font-heading {
 }
 
 [data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] {
-    gap: 4px;
+    gap: 5px;
 }
 
 [data-testid="stSidebar"] [data-testid="stRadio"] label {
@@ -123,9 +131,9 @@ h1, h2, h3, h4, .font-heading {
     border: 1px solid transparent;
     border-radius: 8px;
     color: #94A3B8 !important;
-    font-size: 13.5px !important;
+    font-size: 16px !important;
     font-weight: 500 !important;
-    padding: 9px 12px !important;
+    padding: 10px 14px !important;
     transition: all 0.15s ease-in-out;
 }
 
@@ -155,17 +163,18 @@ h1, h2, h3, h4, .font-heading {
 }
 
 .top-header-title {
-    font-size: 24px;
-    font-weight: 700;
+    font-size: 24px !important;
+    font-weight: 700 !important;
     color: #F8FAFC;
     margin: 0;
 }
 
 .top-header-subtitle {
-    font-size: 13.5px;
+    font-size: 16.5px !important;
     color: #94A3B8;
     margin-top: 4px;
     margin-bottom: 0;
+    line-height: 1.5;
 }
 
 .status-badge-container {
@@ -178,9 +187,9 @@ h1, h2, h3, h4, .font-heading {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 5px 12px;
+    padding: 6px 14px !important;
     border-radius: 20px;
-    font-size: 12px;
+    font-size: 15px !important;
     font-weight: 500;
     letter-spacing: 0.02em;
 }
@@ -198,8 +207,8 @@ h1, h2, h3, h4, .font-heading {
 }
 
 .pulse-dot {
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     background-color: currentColor;
 }
@@ -209,8 +218,8 @@ h1, h2, h3, h4, .font-heading {
     background: #151C2C;
     border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 12px;
-    padding: 20px 22px;
-    margin-bottom: 16px;
+    padding: 22px 24px;
+    margin-bottom: 18px;
     transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
     box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
 }
@@ -225,8 +234,8 @@ h1, h2, h3, h4, .font-heading {
     background: #151C2C;
     border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 12px;
-    padding: 20px 22px;
-    margin-bottom: 16px;
+    padding: 22px 24px;
+    margin-bottom: 18px;
     box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
 }
 
@@ -235,7 +244,7 @@ h1, h2, h3, h4, .font-heading {
     background: #151C2C;
     border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 12px;
-    padding: 18px 20px;
+    padding: 20px 22px;
     transition: transform 0.15s ease, border-color 0.15s ease;
 }
 
@@ -253,21 +262,21 @@ h1, h2, h3, h4, .font-heading {
 
 .kpi-title {
     color: #94A3B8;
-    font-size: 11.5px;
+    font-size: 16px !important;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.05em;
 }
 
 .kpi-icon {
-    font-size: 16px;
+    font-size: 18px;
     opacity: 0.85;
 }
 
 .kpi-value {
     font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 28px;
-    font-weight: 700;
+    font-size: 28px !important;
+    font-weight: 700 !important;
     color: #F8FAFC;
     line-height: 1.1;
     letter-spacing: -0.02em;
@@ -275,8 +284,8 @@ h1, h2, h3, h4, .font-heading {
 }
 
 .kpi-subtext {
-    font-size: 12px;
-    color: #64748B;
+    font-size: 15.5px !important;
+    color: #94A3B8;
     font-weight: 400;
     display: flex;
     align-items: center;
@@ -287,10 +296,10 @@ h1, h2, h3, h4, .font-heading {
 .sentiment-badge {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 4px 10px;
+    gap: 6px;
+    padding: 6px 14px !important;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 15.5px !important;
     font-weight: 600;
     letter-spacing: 0.02em;
 }
@@ -317,13 +326,13 @@ h1, h2, h3, h4, .font-heading {
 .aspect-pill {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 4px 10px;
+    gap: 6px;
+    padding: 6px 14px !important;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 15.5px !important;
     font-weight: 500;
-    margin-right: 6px;
-    margin-bottom: 4px;
+    margin-right: 8px;
+    margin-bottom: 6px;
 }
 
 .aspect-quality {
@@ -360,14 +369,14 @@ h1, h2, h3, h4, .font-heading {
 .confidence-header {
     display: flex;
     justify-content: space-between;
-    font-size: 12px;
+    font-size: 16px !important;
     color: #94A3B8;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
 
 .confidence-bar-bg {
     width: 100%;
-    height: 7px;
+    height: 8px;
     background: #1E293B;
     border-radius: 4px;
     overflow: hidden;
@@ -384,10 +393,10 @@ h1, h2, h3, h4, .font-heading {
     background: #8B7CFF !important;
     color: #0B0F19 !important;
     font-weight: 600 !important;
-    font-size: 14px !important;
+    font-size: 16.5px !important;
     border: none !important;
     border-radius: 8px !important;
-    padding: 10px 20px !important;
+    padding: 12px 24px !important;
     transition: all 0.15s ease-in-out !important;
     box-shadow: 0 2px 8px rgba(139, 124, 255, 0.25) !important;
 }
@@ -408,6 +417,7 @@ button[kind="secondary"] {
     color: #F8FAFC !important;
     border: 1px solid #1E293B !important;
     box-shadow: none !important;
+    font-size: 16.5px !important;
 }
 
 button[kind="secondary"]:hover {
@@ -423,7 +433,24 @@ button[kind="secondary"]:hover {
     border: 1px solid #1E293B !important;
     border-radius: 8px !important;
     color: #F8FAFC !important;
-    font-size: 14px !important;
+    font-size: 17.5px !important;
+    line-height: 1.55 !important;
+}
+
+.stTextInput label,
+.stTextArea label,
+.stSelectbox label,
+.stNumberInput label,
+.stRadio label {
+    font-size: 16.5px !important;
+    font-weight: 500 !important;
+    color: #F8FAFC !important;
+}
+
+.stTextInput input::placeholder,
+.stTextArea textarea::placeholder {
+    font-size: 17px !important;
+    color: #64748B !important;
 }
 
 .stTextInput > div > div > input:focus,
@@ -436,15 +463,15 @@ button[kind="secondary"]:hover {
 .stTabs [data-baseweb="tab-list"] {
     background: transparent;
     border-bottom: 1px solid #1E293B;
-    gap: 16px;
+    gap: 18px;
 }
 
 .stTabs [data-baseweb="tab"] {
     background: transparent !important;
     color: #94A3B8 !important;
-    font-size: 13.5px !important;
+    font-size: 16.5px !important;
     font-weight: 500 !important;
-    padding: 10px 4px !important;
+    padding: 12px 6px !important;
     border: none !important;
     border-bottom: 2px solid transparent !important;
 }
@@ -460,18 +487,54 @@ button[kind="secondary"]:hover {
     background: #151C2C;
     border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 10px;
-    padding: 14px 16px;
+    padding: 16px 18px;
 }
 
 [data-testid="stMetricLabel"] {
     color: #94A3B8 !important;
-    font-size: 12px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
 }
 
 [data-testid="stMetricValue"] {
     color: #F8FAFC !important;
     font-family: 'Plus Jakarta Sans', sans-serif !important;
     font-weight: 700 !important;
+}
+
+[data-testid="stMetricDelta"] {
+    font-size: 15px !important;
+}
+
+/* Tables and DataFrames Readability for Projector */
+[data-testid="stDataFrame"], [data-testid="stTable"] {
+    font-size: 16.5px !important;
+}
+
+[data-testid="stDataFrame"] div, [data-testid="stDataFrame"] span {
+    font-size: 16.5px !important;
+    line-height: 1.55 !important;
+}
+
+table, th, td {
+    font-size: 16.5px !important;
+    line-height: 1.6 !important;
+    padding: 10px 14px !important;
+}
+
+/* Captions and Footnotes */
+[data-testid="stCaptionContainer"], small {
+    font-size: 14.5px !important;
+    color: #94A3B8 !important;
+    line-height: 1.5 !important;
+}
+
+/* Alerts and Messages */
+[data-testid="stAlert"] p, [data-testid="stAlert"] span {
+    font-size: 16.5px !important;
+    line-height: 1.55 !important;
 }
 
 /* Clean Empty State */
@@ -491,17 +554,18 @@ button[kind="secondary"]:hover {
 }
 
 .empty-state-title {
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 18px !important;
+    font-weight: 600 !important;
     color: #F8FAFC;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
 
 .empty-state-desc {
-    font-size: 13px;
+    font-size: 16.5px !important;
     color: #94A3B8;
-    max-width: 400px;
+    max-width: 480px;
     margin: 0 auto;
+    line-height: 1.6;
 }
 
 /* Presets Container */
@@ -514,12 +578,12 @@ button[kind="secondary"]:hover {
 
 .preset-chip {
     display: inline-block;
-    padding: 6px 12px;
+    padding: 8px 16px !important;
     border-radius: 6px;
     background: #151C2C;
     border: 1px solid #1E293B;
     color: #94A3B8;
-    font-size: 12px;
+    font-size: 15.5px !important;
     cursor: pointer;
     transition: all 0.15s ease;
 }
