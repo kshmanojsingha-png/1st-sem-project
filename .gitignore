@@ -26,3 +26,11 @@ outputs/uvicorn_*.txt
 .idea/
 .DS_Store
 Thumbs.db
+
+# Teacher resources and presentation files
+teacher_resources/
+*.pptx
+*.ppt
+Presentation.pptx
+ReviewSense_Presentation_10Slides.pptx
+

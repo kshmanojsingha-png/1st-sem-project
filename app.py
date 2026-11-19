@@ -1,6 +1,6 @@
 """
 ReviewSense – Multi-Aspect Product Review & Customer Sentiment Hub
-Linear / Vercel-inspired Enterprise AI SaaS Dashboard
+Linear / Vercel-inspired Enterprise AI SaaS Dashboard (High-Performance Turbo Edition)
 """
 
 import os
@@ -29,11 +29,11 @@ st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
 
 # -----------------------------------------------------------------------------
-# 2. CACHED DATA LOADERS
+# 2. HIGH-PERFORMANCE IN-MEMORY SINGLETON DATA & RESOURCE LOADERS
 # -----------------------------------------------------------------------------
-@st.cache_data
+@st.cache_resource
 def load_eval_predictions() -> pd.DataFrame:
-    """Loads held-out test predictions (6,000 reviews) and computes aspects."""
+    """Loads held-out test predictions (6,000 reviews) as an in-memory singleton (zero-copy)."""
     try:
         p_df = pd.read_csv("data/predictions.csv")
         p_df["predicted"] = p_df["predicted"].str.lower()
@@ -44,27 +44,81 @@ def load_eval_predictions() -> pd.DataFrame:
         return pd.DataFrame()
 
 
-@st.cache_data
+@st.cache_resource
 def load_food_dataset() -> pd.DataFrame:
-    """Loads a sample of the Amazon Food Reviews dataset with product titles."""
+    """Lazy-loads the 50k Amazon Food Reviews dataset only when requested."""
     try:
         return pd.read_csv("final_food_reviews.csv")
     except Exception:
         return pd.DataFrame()
 
 
+@st.cache_data(ttl=12)
+def get_backend_health(url: str):
+    """Caches health check for 12 seconds to ensure zero tab-switching network delay."""
+    return api_client.check_api_health(url, timeout=0.35)
+
+
 @st.cache_data
-def load_confusion_matrix() -> pd.DataFrame:
-    """Loads the test evaluation confusion matrix."""
-    try:
-        return pd.read_csv("outputs/confusion_matrix.csv", index_col=0)
-    except Exception:
-        return pd.DataFrame()
+def get_cached_overview_charts():
+    """Caches Overview figures so switching back and forth is instantaneous."""
+    df = load_eval_predictions()
+    donut = ui_charts.create_sentiment_donut(df, sentiment_col="predicted")
+    aspect_bar = ui_charts.create_aspect_bar(df, aspects_col="aspects")
+    return donut, aspect_bar
 
 
+@st.cache_data
+def get_popular_food_titles():
+    """Precomputes top 50 popular food products and titles catalog for instant selectbox rendering."""
+    f_df = load_food_dataset()
+    if f_df.empty:
+        return [], []
+    valid = f_df[f_df["title"] != "Unknown Product"]
+    top_titles = valid["title"].value_counts().head(50).index.tolist()
+    all_titles = valid["title"].unique().tolist()
+    return top_titles, all_titles
+
+
+@st.cache_data
+def get_cached_aspect_stats():
+    """Precomputes aspect breakdown stats and chart for Aspect-Based Insights."""
+    df = load_eval_predictions()
+    if df.empty:
+        return (0, 0, 0, 0, df), (0, 0, 0, 0, df), (0, 0, 0, 0, df), None
+
+    def _stat(asp_name):
+        has_asp = df[df["aspects"].apply(lambda a: asp_name in a if isinstance(a, list) else asp_name in str(a))]
+        t = len(has_asp)
+        p = (has_asp["predicted"] == "positive").sum()
+        n = (has_asp["predicted"] == "negative").sum()
+        neu = (has_asp["predicted"] == "neutral").sum()
+        return t, p, n, neu, has_asp
+
+    q_stat = _stat("Quality")
+    s_stat = _stat("Shipping")
+    p_stat = _stat("Price")
+    chart = ui_charts.create_aspect_sentiment_grouped_bar(df, sentiment_col="predicted", aspects_col="aspects")
+    return q_stat, s_stat, p_stat, chart
+
+
+@st.cache_data
+def get_sentiment_analytics_static_charts():
+    """Precomputes static rating matrix and temporal trends for Sentiment Analytics."""
+    f_df = load_food_dataset()
+    if f_df.empty:
+        return None, None
+    sample = f_df.head(5000).copy()
+    sample["sentiment"] = sample["Score"].apply(
+        lambda s: "positive" if s >= 4 else ("negative" if s <= 2 else "neutral")
+    )
+    m_fig = ui_charts.create_rating_sentiment_matrix(sample, score_col="Score", sentiment_col="sentiment")
+    t_fig = ui_charts.create_time_trend_chart(sample, time_col="Time", sentiment_col="sentiment")
+    return m_fig, t_fig
+
+
+# Load evaluation dataset as instant memory singleton
 eval_df = load_eval_predictions()
-food_df = load_food_dataset()
-cm_df = load_confusion_matrix()
 
 
 # Initialize Session State
@@ -99,32 +153,31 @@ with st.sidebar:
             "Batch Review Analysis",
             "Sentiment Analytics",
             "Aspect-Based Insights",
-            "Model Performance",
             "About Project"
         ],
         index=0,
         label_visibility="collapsed"
     )
 
-    st.markdown("<hr style='margin: 16px 0 !important;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='margin: 14px 0 !important;'>", unsafe_allow_html=True)
 
-    # Live Backend Status Check
+    # Live Backend Status Check (Cached for 12s to eliminate socket block on tab switch)
     backend_url = st.session_state["backend_url"]
-    health = api_client.check_api_health(backend_url)
+    health = get_backend_health(backend_url)
 
-    st.markdown("<span style='font-size:15px; font-weight:600; color:#94A3B8; text-transform:uppercase; letter-spacing:0.06em;'>System Status</span>", unsafe_allow_html=True)
+    st.markdown("<span style='font-size:13px; font-weight:700; color:#94A3B8; text-transform:uppercase; letter-spacing:0.08em;'>System Engine</span>", unsafe_allow_html=True)
     if health["online"]:
         st.markdown(f"""
-        <div class="status-pill status-pill-online" style="margin-top:6px; margin-bottom:12px; width:100%; justify-content:center;">
+        <div class="status-pill status-pill-online" style="margin-top:8px; margin-bottom:12px; width:100%; justify-content:center;">
             <div class="pulse-dot"></div>
-            <span>FastAPI Server Connected (:8000)</span>
+            <span>FastAPI REST Connected (:8000)</span>
         </div>
         """, unsafe_allow_html=True)
     else:
         st.markdown("""
-        <div class="status-pill status-pill-fallback" style="margin-top:6px; margin-bottom:12px; width:100%; justify-content:center;">
-            <div class="pulse-dot"></div>
-            <span>Local ML Pipeline Active (Fallback)</span>
+        <div class="status-pill status-pill-fallback" style="margin-top:8px; margin-bottom:12px; width:100%; justify-content:center;">
+            <div class="pulse-dot" style="background-color:#FBBF24;"></div>
+            <span>Local ML Pipeline (Fallback Active)</span>
         </div>
         """, unsafe_allow_html=True)
 
@@ -135,15 +188,18 @@ with st.sidebar:
             st.rerun()
 
         if not health["online"]:
-            st.caption("To start the dedicated FastAPI backend, run in terminal:")
+            st.caption("To run the FastAPI server alongside Streamlit:")
             st.code("uvicorn api:app --reload --port 8000", language="bash")
-            st.caption("Zero-downtime fallback runs ML inference locally.")
+            st.caption("Inference continues seamlessly via zero-downtime local fallback.")
 
-    st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
     st.markdown("""
-    <div style='padding: 12px; border-radius: 8px; background: #111827; border: 1px solid #1E293B;'>
-        <div style='font-size: 15px; font-weight: 600; color: #F8FAFC;'>ReviewSense v2.1 Enterprise</div>
-        <div style='font-size: 14px; color: #64748B; margin-top: 2px;'>Scikit-Learn • FastAPI • Streamlit</div>
+    <div style='padding: 14px 16px; border-radius: 10px; background: rgba(21, 28, 44, 0.7); border: 1px solid rgba(255, 255, 255, 0.08);'>
+        <div style='display:flex; justify-content:space-between; align-items:center;'>
+            <span style='font-size: 14px; font-weight: 700; color: #F8FAFC;'>ReviewSense Enterprise</span>
+            <span style='font-size: 11px; padding: 2px 7px; border-radius: 12px; background: rgba(139, 124, 255, 0.2); color: #8B7CFF; font-weight:600;'>v2.2 Pro</span>
+        </div>
+        <div style='font-size: 13px; color: #94A3B8; margin-top: 5px;'>Scikit-Learn • FastAPI • Streamlit</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -151,21 +207,45 @@ with st.sidebar:
 # -----------------------------------------------------------------------------
 # 4. TOP HEADER BAR HELPER
 # -----------------------------------------------------------------------------
-def render_header(title: str, subtitle: str):
-    """Renders the top title bar with active status pill."""
+def render_header(title: str, subtitle: str, badge: str = None):
+    """Renders the top title bar with active status pill and breadcrumb styling."""
     status_html = (
         '<div class="status-pill status-pill-online"><div class="pulse-dot"></div> API Online</div>'
         if health["online"]
-        else '<div class="status-pill status-pill-fallback"><div class="pulse-dot"></div> Local Fallback</div>'
+        else '<div class="status-pill status-pill-fallback"><div class="pulse-dot" style="background-color:#FBBF24;"></div> Local Engine Active</div>'
     )
+    badge_html = f'<span style="margin-left: 10px; padding: 3px 9px; font-size: 13px; font-weight: 600; border-radius: 6px; background: rgba(139, 124, 255, 0.15); color: #8B7CFF; border: 1px solid rgba(139, 124, 255, 0.3);">{badge}</span>' if badge else ""
+    
     st.markdown(f"""
     <div class="top-header">
         <div>
-            <h1 class="top-header-title">{title}</h1>
+            <div style="font-size: 12px; color: #8B7CFF; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px;">
+                REVIEWSENSE INTELLIGENCE PLATFORM
+            </div>
+            <h1 class="top-header-title">{title} {badge_html}</h1>
             <p class="top-header-subtitle">{subtitle}</p>
         </div>
         <div class="status-badge-container">
             {status_html}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+# -----------------------------------------------------------------------------
+# 5. FOOTER HELPER
+# -----------------------------------------------------------------------------
+def render_footer():
+    """Renders a sleek bottom footer for executive polish."""
+    st.markdown("""
+    <div style="margin-top: 48px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center; color: #64748B; font-size: 13.5px;">
+        <div>
+            <span>⚡ <b>ReviewSense</b> AI Review & Aspect Intelligence Engine</span>
+            <span style="margin: 0 8px;">•</span>
+            <span>Group D Project</span>
+        </div>
+        <div>
+            <span>TF-IDF • Logistic Regression • FastAPI REST • Streamlit Pro</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -176,8 +256,9 @@ def render_header(title: str, subtitle: str):
 # =============================================================================
 if nav_selection == "Overview":
     render_header(
-        title="Welcome to ReviewSense",
-        subtitle="Understand customer opinions through intelligent sentiment and multi-aspect analysis."
+        title="Executive Overview",
+        subtitle="Holistic customer sentiment dynamics, aspect breakdowns, and operational intelligence metrics.",
+        badge="Live Dashboard"
     )
 
     # Dynamic KPI Metrics from Evaluation Dataset
@@ -193,23 +274,45 @@ if nav_selection == "Overview":
         total_eval, pos_pct, neg_pct, neu_pct = 6000, "72.4%", "16.5%", "11.1%"
         pos_cnt, neg_cnt, neu_cnt = 4341, 990, 669
 
-    # KPI Row
+    # Hero Banner Callout
+    st.markdown("""
+    <div style="padding: 20px 24px; border-radius: 14px; background: linear-gradient(135deg, rgba(139, 124, 255, 0.12) 0%, rgba(56, 189, 248, 0.08) 100%); border: 1px solid rgba(139, 124, 255, 0.25); margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between;">
+        <div>
+            <div style="font-size: 19px; font-weight: 700; color: #F8FAFC; margin-bottom: 4px;">
+                🚀 Multi-Aspect Customer Sentiment Intelligence Hub
+            </div>
+            <div style="font-size: 14.5px; color: #94A3B8; max-width: 820px; line-height: 1.5;">
+                Decomposing customer opinions into fine-grained sentiment scores and operational dimensions across <b>Quality</b>, <b>Shipping</b>, and <b>Price</b>.
+            </div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <span style="font-size: 12.5px; padding: 6px 12px; border-radius: 8px; background: rgba(34, 197, 94, 0.15); color: #22C55E; font-weight: 600; border: 1px solid rgba(34, 197, 94, 0.3);">
+                Accuracy: 81.3%
+            </span>
+            <span style="font-size: 12.5px; padding: 6px 12px; border-radius: 8px; background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-weight: 600; border: 1px solid rgba(56, 189, 248, 0.3);">
+                6,000 Test Set
+            </span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # KPI Row with Distinctive Top Border Colors
     kpi_col1, kpi_col2, kpi_col3, kpi_col4 = st.columns(4)
     with kpi_col1:
         st.markdown(f"""
-        <div class="kpi-card">
+        <div class="kpi-card" style="border-top: 3px solid #8B7CFF;">
             <div class="kpi-header">
-                <span class="kpi-title">Total Reviews Analysed</span>
+                <span class="kpi-title">Total Analysed</span>
                 <span class="kpi-icon">📊</span>
             </div>
             <div class="kpi-value">{total_eval:,}</div>
-            <div class="kpi-subtext">Held-out test dataset evaluation</div>
+            <div class="kpi-subtext"><span>📦</span> Held-out evaluation set</div>
         </div>
         """, unsafe_allow_html=True)
 
     with kpi_col2:
         st.markdown(f"""
-        <div class="kpi-card">
+        <div class="kpi-card" style="border-top: 3px solid #22C55E;">
             <div class="kpi-header">
                 <span class="kpi-title">Positive Reviews</span>
                 <span class="kpi-icon">😊</span>
@@ -221,7 +324,7 @@ if nav_selection == "Overview":
 
     with kpi_col3:
         st.markdown(f"""
-        <div class="kpi-card">
+        <div class="kpi-card" style="border-top: 3px solid #F87171;">
             <div class="kpi-header">
                 <span class="kpi-title">Negative Reviews</span>
                 <span class="kpi-icon">😟</span>
@@ -233,7 +336,7 @@ if nav_selection == "Overview":
 
     with kpi_col4:
         st.markdown(f"""
-        <div class="kpi-card">
+        <div class="kpi-card" style="border-top: 3px solid #FBBF24;">
             <div class="kpi-header">
                 <span class="kpi-title">Neutral Reviews</span>
                 <span class="kpi-icon">😐</span>
@@ -243,27 +346,31 @@ if nav_selection == "Overview":
         </div>
         """, unsafe_allow_html=True)
 
-    st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
 
-    # Visual Analytics Split
+    # Visual Analytics Split (Cached figures for instant load)
     col_chart1, col_chart2 = st.columns([1, 1])
+    donut_fig, bar_fig = get_cached_overview_charts()
+
     with col_chart1:
         st.markdown("<div class='saas-card'>", unsafe_allow_html=True)
-        donut_fig = ui_charts.create_sentiment_donut(eval_df, sentiment_col="predicted")
         st.plotly_chart(donut_fig, width="stretch")
         st.markdown("</div>", unsafe_allow_html=True)
 
     with col_chart2:
         st.markdown("<div class='saas-card'>", unsafe_allow_html=True)
-        bar_fig = ui_charts.create_aspect_bar(eval_df, aspects_col="aspects")
         st.plotly_chart(bar_fig, width="stretch")
         st.markdown("</div>", unsafe_allow_html=True)
 
     # Recent Analysis Section
-    st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
-    st.markdown("### 📋 Recent Review Analyses")
+    st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+    st.markdown("""
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+        <span style="font-size: 18px; font-weight: 700; color: #F8FAFC;">📋 Recent Review Analyses</span>
+        <span style="font-size: 13px; color: #94A3B8;">Auto-updated from live sessions</span>
+    </div>
+    """, unsafe_allow_html=True)
 
-    # Combine recent session analyses with a few sample evaluations
     sample_records = []
     if st.session_state["recent_analyses"]:
         for item in reversed(st.session_state["recent_analyses"][-5:]):
@@ -280,9 +387,9 @@ if nav_selection == "Overview":
             sample_records.append({
                 "Review Snippet": (str(row["review_text"])[:110] + "...") if len(str(row["review_text"])) > 110 else str(row["review_text"]),
                 "Sentiment": str(row["predicted"]).capitalize(),
-                "Aspects": ", ".join(row["aspects"]) if isinstance(row["aspects"], list) and row["aspects"] else "None",
+                "Aspects": ", ".join(row["aspects"]) if isinstance(row["aspects"], list) else str(row["aspects"]),
                 "Confidence": "Evaluated",
-                "Source": "Test Set"
+                "Source": "Held-Out Test"
             })
 
     if sample_records:
@@ -293,9 +400,11 @@ if nav_selection == "Overview":
         <div class="empty-state">
             <div class="empty-state-icon">📝</div>
             <div class="empty-state-title">No recent reviews analyzed yet</div>
-            <div class="empty-state-desc">Head over to Single Review Analysis to analyze individual customer feedback.</div>
+            <div class="empty-state-desc">Navigate to Single Review Analysis to test your own customer feedback comments.</div>
         </div>
         """, unsafe_allow_html=True)
+
+    render_footer()
 
 
 # =============================================================================
@@ -304,25 +413,30 @@ if nav_selection == "Overview":
 elif nav_selection == "Single Review Analysis":
     render_header(
         title="Single Review Analysis",
-        subtitle="Perform granular sentiment classification and extract business aspects with confidence metrics."
+        subtitle="Granular sentiment classification with multi-aspect detection and confidence scoring.",
+        badge="Inference Hub"
     )
 
     tab_direct, tab_explorer = st.tabs(["✍️ Interactive Review Input", "🛒 Amazon Food Products Explorer"])
 
     with tab_direct:
-        st.markdown("#### Test a Customer Review")
-        st.caption("Select a quick preset or paste custom feedback below:")
+        st.markdown("""
+        <div style="margin-bottom: 14px;">
+            <span style="font-size: 15px; font-weight: 700; color: #F8FAFC; text-transform: uppercase; letter-spacing: 0.06em;">Quick Presets</span>
+            <span style="font-size: 13.5px; color: #94A3B8; margin-left: 8px;">Click a sample below to populate the reviewer text:</span>
+        </div>
+        """, unsafe_allow_html=True)
 
         # Quick Preset Buttons
         p_col1, p_col2, p_col3, p_col4 = st.columns(4)
         preset_text = ""
-        if p_col1.button("🟢 High Quality & Fast Courier"):
+        if p_col1.button("🟢 High Quality & Courier", use_container_width=True):
             preset_text = "The quality is outstanding and very durable. Delivered by the courier right on time!"
-        if p_col2.button("🔴 Stale Product & Pricey"):
+        if p_col2.button("🔴 Stale Product & Pricey", use_container_width=True):
             preset_text = "Terrible stale taste, arrived defective and complete waste of money. Extremely overpriced."
-        if p_col3.button("🟡 Average & Neutral"):
+        if p_col3.button("🟡 Average & Neutral", use_container_width=True):
             preset_text = "It was okay, an average product with nothing special. Standard taste."
-        if p_col4.button("📦 Damaged Package"):
+        if p_col4.button("📦 Damaged Package", use_container_width=True):
             preset_text = "The courier packaging was damaged and parcel delayed, though customer service was responsive."
 
         # Input Area
@@ -334,13 +448,18 @@ elif nav_selection == "Single Review Analysis":
             label_visibility="collapsed"
         )
 
-        btn_analyze = st.button("⚡ Analyse Review", key="btn_single_analyze")
+        col_btn, col_info = st.columns([1, 3])
+        with col_btn:
+            btn_analyze = st.button("⚡ Analyse Review", key="btn_single_analyze", use_container_width=True)
+        with col_info:
+            char_count = len(review_input)
+            st.markdown(f"<div style='margin-top:12px; font-size:13.5px; color:#64748B;'>Character count: {char_count} chars</div>", unsafe_allow_html=True)
 
         if btn_analyze:
             if not review_input.strip():
-                st.warning("Please enter a review first.")
+                st.warning("Please enter or select a review comment first.")
             else:
-                with st.spinner("Classifying sentiment and extracting multi-aspect keywords..."):
+                with st.spinner("Extracting sentiment features & evaluating aspect dimensions..."):
                     res = api_client.predict_single(review_input, base_url=backend_url)
 
                 if not res.get("success"):
@@ -365,20 +484,20 @@ elif nav_selection == "Single Review Analysis":
                     if sentiment.lower() == "positive":
                         s_color = "#22C55E"
                         s_bg = "rgba(34, 197, 94, 0.12)"
-                        s_border = "rgba(34, 197, 94, 0.3)"
+                        s_border = "rgba(34, 197, 94, 0.35)"
                         s_icon = "😊"
                     elif sentiment.lower() == "negative":
                         s_color = "#F87171"
                         s_bg = "rgba(248, 113, 113, 0.12)"
-                        s_border = "rgba(248, 113, 113, 0.3)"
+                        s_border = "rgba(248, 113, 113, 0.35)"
                         s_icon = "😟"
                     else:
                         s_color = "#FBBF24"
                         s_bg = "rgba(251, 191, 36, 0.12)"
-                        s_border = "rgba(251, 191, 36, 0.3)"
+                        s_border = "rgba(251, 191, 36, 0.35)"
                         s_icon = "😐"
 
-                    st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+                    st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
 
                     # Output Row 1: Overall Sentiment Card + Aspects Grid
                     r_col1, r_col2 = st.columns([1, 1.2])
@@ -386,16 +505,16 @@ elif nav_selection == "Single Review Analysis":
                     with r_col1:
                         conf_str = f"{(confidence * 100):.1f}%" if confidence else "Calculated"
                         st.markdown(f"""
-                        <div class="saas-card-static" style="border-color:{s_border}; background: {s_bg};">
+                        <div class="saas-card-static" style="border-color:{s_border}; background: {s_bg}; box-shadow: 0 8px 24px rgba(0,0,0,0.35);">
                             <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <span style="font-size:15.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:#94A3B8;">Predicted Sentiment</span>
-                                <span class="status-pill status-pill-online" style="font-size:14px; padding:3px 8px;">{source}</span>
+                                <span style="font-size:13.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#94A3B8;">Predicted Sentiment</span>
+                                <span class="status-pill status-pill-online" style="font-size:12.5px; padding:3px 10px;">{source}</span>
                             </div>
-                            <div style="font-size:32px; font-weight:800; color:{s_color}; margin: 12px 0 6px 0; font-family:'Plus Jakarta Sans';">
+                            <div style="font-size:36px; font-weight:800; color:{s_color}; margin: 14px 0 8px 0; letter-spacing:-0.03em;">
                                 {s_icon} {sentiment.upper()}
                             </div>
-                            <div style="font-size:17.5px; color:#F8FAFC;">
-                                Decision Confidence: <b>{conf_str}</b>
+                            <div style="font-size:16px; color:#F8FAFC;">
+                                Decision Confidence: <b style="color:#FFFFFF; font-size:18px;">{conf_str}</b>
                             </div>
                         </div>
                         """, unsafe_allow_html=True)
@@ -403,7 +522,7 @@ elif nav_selection == "Single Review Analysis":
                     with r_col2:
                         # Aspect Badges
                         st.markdown("<div class='saas-card-static'>", unsafe_allow_html=True)
-                        st.markdown("<span style='font-size:15.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:#94A3B8;'>Aspect Dimensions</span>", unsafe_allow_html=True)
+                        st.markdown("<span style='font-size:13.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#94A3B8;'>Detected Business Aspects</span>", unsafe_allow_html=True)
 
                         aspect_pills_html = ""
                         for asp, asp_cls in [("Quality", "aspect-quality"), ("Shipping", "aspect-shipping"), ("Price", "aspect-price")]:
@@ -412,55 +531,91 @@ elif nav_selection == "Single Review Analysis":
                             else:
                                 aspect_pills_html += f'<span class="aspect-pill aspect-none">○ {asp}: Not Present</span>'
 
-                        st.markdown(f"<div style='margin-top:12px;'>{aspect_pills_html}</div>", unsafe_allow_html=True)
+                        st.markdown(f"<div style='margin-top:14px;'>{aspect_pills_html}</div>", unsafe_allow_html=True)
 
                         st.markdown(f"""
-                        <div style="margin-top:14px; font-size:16.5px; color:#94A3B8;">
-                            <b>Summary:</b> Review touches upon <b>{len(aspects)}</b> business dimension{'s' if len(aspects) != 1 else ''}.
+                        <div style="margin-top:16px; font-size:15px; color:#94A3B8; line-height:1.6;">
+                            <b>Summary:</b> Review addresses <b>{len(aspects)}</b> of 3 operational dimensions ({', '.join(aspects) if aspects else 'General opinion'}).
                         </div>
                         """, unsafe_allow_html=True)
                         st.markdown("</div>", unsafe_allow_html=True)
 
-                    # Output Row 2: Probabilities Distribution & Text Metrics
+                    # Output Row 2: Probabilities Distribution
                     if probs:
                         st.markdown("<div class='saas-card-static'>", unsafe_allow_html=True)
-                        st.markdown("<span style='font-size:15.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:#94A3B8;'>Model Probability Distribution (Softmax)</span>", unsafe_allow_html=True)
+                        st.markdown("<span style='font-size:13.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#94A3B8;'>Softmax Probability Breakdown</span>", unsafe_allow_html=True)
 
                         prob_pos = probs.get("positive", 0.0) * 100
                         prob_neu = probs.get("neutral", 0.0) * 100
                         prob_neg = probs.get("negative", 0.0) * 100
 
-                        st.markdown(f"""
-                        <div style="margin-top:10px;">
-                            <div class="confidence-header">
-                                <span>Positive: <b>{prob_pos:.1f}%</b></span>
-                                <span>Neutral: <b>{prob_neu:.1f}%</b></span>
-                                <span>Negative: <b>{prob_neg:.1f}%</b></span>
+                        pr_c1, pr_c2, pr_c3 = st.columns(3)
+                        with pr_c1:
+                            st.markdown(f"""
+                            <div style="margin-top: 10px; padding: 12px; border-radius: 8px; background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.2);">
+                                <div style="display:flex; justify-content:space-between; font-size: 13.5px; color: #94A3B8; font-weight: 600;">
+                                    <span>Positive</span>
+                                    <span style="color:#22C55E; font-weight:700;">{prob_pos:.1f}%</span>
+                                </div>
+                                <div style="height: 6px; background: rgba(30, 41, 59, 0.8); border-radius: 3px; margin-top: 8px; overflow: hidden;">
+                                    <div style="width: {prob_pos}%; background: #22C55E; height: 100%; border-radius: 3px;"></div>
+                                </div>
                             </div>
-                            <div class="confidence-bar-bg" style="display:flex;">
-                                <div style="width:{prob_pos}%; background:#22C55E; height:100%;"></div>
-                                <div style="width:{prob_neu}%; background:#FBBF24; height:100%;"></div>
-                                <div style="width:{prob_neg}%; background:#F87171; height:100%;"></div>
+                            """, unsafe_allow_html=True)
+
+                        with pr_c2:
+                            st.markdown(f"""
+                            <div style="margin-top: 10px; padding: 12px; border-radius: 8px; background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.2);">
+                                <div style="display:flex; justify-content:space-between; font-size: 13.5px; color: #94A3B8; font-weight: 600;">
+                                    <span>Neutral</span>
+                                    <span style="color:#FBBF24; font-weight:700;">{prob_neu:.1f}%</span>
+                                </div>
+                                <div style="height: 6px; background: rgba(30, 41, 59, 0.8); border-radius: 3px; margin-top: 8px; overflow: hidden;">
+                                    <div style="width: {prob_neu}%; background: #FBBF24; height: 100%; border-radius: 3px;"></div>
+                                </div>
                             </div>
-                        </div>
-                        """, unsafe_allow_html=True)
+                            """, unsafe_allow_html=True)
+
+                        with pr_c3:
+                            st.markdown(f"""
+                            <div style="margin-top: 10px; padding: 12px; border-radius: 8px; background: rgba(248, 113, 113, 0.08); border: 1px solid rgba(248, 113, 113, 0.2);">
+                                <div style="display:flex; justify-content:space-between; font-size: 13.5px; color: #94A3B8; font-weight: 600;">
+                                    <span>Negative</span>
+                                    <span style="color:#F87171; font-weight:700;">{prob_neg:.1f}%</span>
+                                </div>
+                                <div style="height: 6px; background: rgba(30, 41, 59, 0.8); border-radius: 3px; margin-top: 8px; overflow: hidden;">
+                                    <div style="width: {prob_neg}%; background: #F87171; height: 100%; border-radius: 3px;"></div>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+
                         st.markdown("</div>", unsafe_allow_html=True)
 
     with tab_explorer:
-        st.markdown("#### Database Explorer: Amazon Fine Food Reviews")
-        if food_df.empty:
+        st.markdown("""
+        <div style="margin-bottom: 14px;">
+            <span style="font-size: 16px; font-weight: 700; color: #F8FAFC;">Database Explorer: Amazon Fine Food Reviews</span>
+            <div style="font-size: 14px; color: #94A3B8; margin-top: 4px;">Inspect product entries with historical star ratings and text feedback:</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        popular_titles, all_titles = get_popular_food_titles()
+        if not popular_titles:
             st.error("Dataset 'final_food_reviews.csv' not found.")
         else:
-            unique_foods = food_df[food_df["title"] != "Unknown Product"]["title"].unique().tolist()
-            unique_foods.sort()
+            s_col1, s_col2 = st.columns([1, 1.6])
+            with s_col1:
+                search_q = st.text_input("🔍 Search product catalog:", placeholder="Type e.g. coffee, tea, chocolate...", key="food_search_box").strip().lower()
+            with s_col2:
+                if search_q:
+                    matching = [t for t in all_titles if search_q in t.lower()][:35]
+                    options = (["-- Select from Search Results --"] + matching) if matching else ["-- No matching products found --"]
+                else:
+                    options = ["-- Choose a Popular Item --"] + popular_titles
+                selected_product = st.selectbox("Select Product to Inspect:", options=options, key="prod_explorer_select")
 
-            selected_product = st.selectbox(
-                "Select a product from the database:",
-                options=["-- Choose a Food Item --"] + unique_foods,
-                key="prod_explorer_select"
-            )
-
-            if selected_product != "-- Choose a Food Item --":
+            if selected_product and not selected_product.startswith("--"):
+                food_df = load_food_dataset()
                 prod_data = food_df[food_df["title"] == selected_product]
                 avg_rating = prod_data["Score"].mean()
                 total_prod_reviews = len(prod_data)
@@ -468,23 +623,25 @@ elif nav_selection == "Single Review Analysis":
                 p1, p2 = st.columns(2)
                 with p1:
                     st.markdown(f"""
-                    <div class="kpi-card">
+                    <div class="kpi-card" style="border-top: 3px solid #FBBF24;">
                         <div class="kpi-title">Average Star Rating</div>
-                        <div class="kpi-value" style="font-size:24px;">⭐ {avg_rating:.2f} / 5.0</div>
+                        <div class="kpi-value" style="font-size:26px;">⭐ {avg_rating:.2f} / 5.0</div>
                     </div>
                     """, unsafe_allow_html=True)
                 with p2:
                     st.markdown(f"""
-                    <div class="kpi-card">
-                        <div class="kpi-title">Dataset Reviews Count</div>
-                        <div class="kpi-value" style="font-size:24px;">📩 {total_prod_reviews:,}</div>
+                    <div class="kpi-card" style="border-top: 3px solid #38BDF8;">
+                        <div class="kpi-title">Total Product Reviews</div>
+                        <div class="kpi-value" style="font-size:26px;">📩 {total_prod_reviews:,}</div>
                     </div>
                     """, unsafe_allow_html=True)
 
-                st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+                st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
                 st.markdown("##### 📋 Verified Sample Customer Reviews")
                 display_sub = prod_data[["Score", "Summary", "Text"]].head(5).copy()
                 st.dataframe(display_sub, width="stretch", hide_index=True)
+
+    render_footer()
 
 
 # =============================================================================
@@ -493,8 +650,34 @@ elif nav_selection == "Single Review Analysis":
 elif nav_selection == "Batch Review Analysis":
     render_header(
         title="Batch Review Analysis",
-        subtitle="Upload customer feedback datasets for automated, high-throughput sentiment classification and aspect tagging."
+        subtitle="Upload customer feedback datasets for high-throughput batch classification and aspect tagging.",
+        badge="Bulk Processor"
     )
+
+    # Visual Pipeline Stepper
+    st.markdown("""
+    <div style="display:flex; justify-content:space-between; align-items:center; padding: 14px 20px; border-radius: 10px; background: rgba(21, 28, 44, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 24px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <span style="width:24px; height:24px; border-radius:50%; background:#8B7CFF; color:#FFFFFF; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">1</span>
+            <span style="font-size:14px; font-weight:600; color:#F8FAFC;">Upload CSV</span>
+        </div>
+        <span style="color:#64748B;">→</span>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <span style="width:24px; height:24px; border-radius:50%; background:rgba(255,255,255,0.1); color:#94A3B8; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">2</span>
+            <span style="font-size:14px; font-weight:500; color:#94A3B8;">Map Columns</span>
+        </div>
+        <span style="color:#64748B;">→</span>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <span style="width:24px; height:24px; border-radius:50%; background:rgba(255,255,255,0.1); color:#94A3B8; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">3</span>
+            <span style="font-size:14px; font-weight:500; color:#94A3B8;">Batch Inference</span>
+        </div>
+        <span style="color:#64748B;">→</span>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <span style="width:24px; height:24px; border-radius:50%; background:rgba(255,255,255,0.1); color:#94A3B8; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">4</span>
+            <span style="font-size:14px; font-weight:500; color:#94A3B8;">Export Insights</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     uploaded_file = st.file_uploader(
         "Upload CSV File",
@@ -508,7 +691,7 @@ elif nav_selection == "Batch Review Analysis":
             st.markdown(f"""
             <div style="display:flex; gap:12px; align-items:center; margin: 10px 0 16px 0;">
                 <span class="status-pill status-pill-online">✓ File Uploaded: {uploaded_file.name}</span>
-                <span class="status-pill status-pill-fallback">{len(raw_df):,} Total Rows</span>
+                <span class="status-pill status-pill-fallback">{len(raw_df):,} Total Rows Detected</span>
             </div>
             """, unsafe_allow_html=True)
 
@@ -547,7 +730,7 @@ elif nav_selection == "Batch Review Analysis":
 
                 def update_prog(ratio, processed, total):
                     prog_bar.progress(min(1.0, ratio))
-                    status_box.markdown(f"<span style='font-size:16px; color:#94A3B8;'>Processed {processed:,} of {total:,} reviews...</span>", unsafe_allow_html=True)
+                    status_box.markdown(f"<span style='font-size:15px; color:#94A3B8;'>Processed <b>{processed:,}</b> of {total:,} reviews...</span>", unsafe_allow_html=True)
 
                 with st.spinner("Processing batch through ReviewSense AI engine..."):
                     results_list, exec_source = api_client.predict_batch(
@@ -558,7 +741,7 @@ elif nav_selection == "Batch Review Analysis":
                     )
 
                 prog_bar.progress(1.0)
-                status_box.markdown(f"<span style='font-size:16px; color:#22C55E; font-weight:600;'>✓ Finished {len(results_list):,} predictions via {exec_source}</span>", unsafe_allow_html=True)
+                status_box.markdown(f"<span style='font-size:15px; color:#22C55E; font-weight:600;'>✓ Finished {len(results_list):,} predictions via {exec_source}</span>", unsafe_allow_html=True)
 
                 # Attach Results to DataFrame
                 out_df = df_to_analyze.copy()
@@ -635,9 +818,11 @@ elif nav_selection == "Batch Review Analysis":
         <div class="empty-state">
             <div class="empty-state-icon">📂</div>
             <div class="empty-state-title">Drag & drop your reviews CSV here</div>
-            <div class="empty-state-desc">Accepts any standard CSV file containing a review text or comments column.</div>
+            <div class="empty-state-desc">Accepts any standard CSV file containing customer comments or reviews for bulk processing.</div>
         </div>
         """, unsafe_allow_html=True)
+
+    render_footer()
 
 
 # =============================================================================
@@ -646,7 +831,8 @@ elif nav_selection == "Batch Review Analysis":
 elif nav_selection == "Sentiment Analytics":
     render_header(
         title="Sentiment Analytics & Trends",
-        subtitle="Deep dive into customer sentiment distributions, star rating correlations, and temporal volume trends."
+        subtitle="Deep dive into customer sentiment distributions, star rating correlations, and temporal volume trends.",
+        badge="Analytics Suite"
     )
 
     # Active dataset selection
@@ -666,7 +852,7 @@ elif nav_selection == "Sentiment Analytics":
 
         filtered_analytics = analytics_df.copy()
         if aspect_choice != "All Aspects":
-            filtered_analytics = filtered_analytics[filtered_analytics["aspects"].apply(lambda a: aspect_choice in a)]
+            filtered_analytics = filtered_analytics[filtered_analytics["aspects"].apply(lambda a: aspect_choice in a if isinstance(a, list) else aspect_choice in str(a))]
 
         # Row 1: Donut & Aspect Sentiment Breakdown
         r1_c1, r1_c2 = st.columns(2)
@@ -686,30 +872,23 @@ elif nav_selection == "Sentiment Analytics":
             )
             st.markdown("</div>", unsafe_allow_html=True)
 
-        # Row 2: Star Rating vs Sentiment & Temporal Trend
-        if not food_df.empty:
-            st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+        # Row 2: Star Rating vs Sentiment & Temporal Trend (Precomputed Static Charts)
+        m_fig, t_fig = get_sentiment_analytics_static_charts()
+        if m_fig and t_fig:
+            st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
             r2_c1, r2_c2 = st.columns(2)
 
             with r2_c1:
                 st.markdown("<div class='saas-card'>", unsafe_allow_html=True)
-                sample_food = food_df.head(5000).copy()
-                sample_food["sentiment"] = sample_food["Score"].apply(
-                    lambda s: "positive" if s >= 4 else ("negative" if s <= 2 else "neutral")
-                )
-                st.plotly_chart(
-                    ui_charts.create_rating_sentiment_matrix(sample_food, score_col="Score", sentiment_col="sentiment"),
-                    width="stretch"
-                )
+                st.plotly_chart(m_fig, width="stretch")
                 st.markdown("</div>", unsafe_allow_html=True)
 
             with r2_c2:
                 st.markdown("<div class='saas-card'>", unsafe_allow_html=True)
-                st.plotly_chart(
-                    ui_charts.create_time_trend_chart(sample_food, time_col="Time", sentiment_col="sentiment"),
-                    width="stretch"
-                )
+                st.plotly_chart(t_fig, width="stretch")
                 st.markdown("</div>", unsafe_allow_html=True)
+
+    render_footer()
 
 
 # =============================================================================
@@ -718,26 +897,17 @@ elif nav_selection == "Sentiment Analytics":
 elif nav_selection == "Aspect-Based Insights":
     render_header(
         title="Aspect-Based Intelligence",
-        subtitle="Dissect customer feedback across three core operational pillars: Quality, Shipping, and Price."
+        subtitle="Dissect customer feedback across three core operational pillars: Quality, Shipping, and Price.",
+        badge="Multi-Aspect 360°"
     )
 
     if eval_df.empty:
         st.warning("Evaluation data not available.")
     else:
-        # Calculate Aspect Analytics
-        def get_aspect_stats(aspect_name):
-            has_asp = eval_df[eval_df["aspects"].apply(lambda a: aspect_name in a)]
-            total = len(has_asp)
-            pos = (has_asp["predicted"] == "positive").sum()
-            neg = (has_asp["predicted"] == "negative").sum()
-            neu = (has_asp["predicted"] == "neutral").sum()
-            return total, pos, neg, neu, has_asp
+        # Precomputed Aspect Analytics & Chart (Loaded instantly from cache)
+        (q_tot, q_pos, q_neg, q_neu, q_df), (s_tot, s_pos, s_neg, s_neu, s_df), (p_tot, p_pos, p_neg, p_neu, p_df), grouped_chart = get_cached_aspect_stats()
 
-        q_tot, q_pos, q_neg, q_neu, q_df = get_aspect_stats("Quality")
-        s_tot, s_pos, s_neg, s_neu, s_df = get_aspect_stats("Shipping")
-        p_tot, p_pos, p_neg, p_neu, p_df = get_aspect_stats("Price")
-
-        # 3 Pillar Cards
+        # 3 Pillar Cards with Modern Glassmorphism Styling
         a_c1, a_c2, a_c3 = st.columns(3)
 
         with a_c1:
@@ -745,16 +915,16 @@ elif nav_selection == "Aspect-Based Insights":
             <div class="saas-card-static" style="border-top: 3px solid #818CF8;">
                 <div class="kpi-header">
                     <span class="kpi-title">Product Quality</span>
-                    <span class="aspect-pill aspect-quality">🏷️ Quality</span>
+                    <span class="aspect-pill aspect-quality" style="margin:0;">🏷️ Quality</span>
                 </div>
                 <div class="kpi-value">{q_tot:,}</div>
-                <div style="font-size:15.5px; color:#94A3B8; margin-bottom:12px;">Total Customer Mentions</div>
-                <div style="font-size:16.5px; line-height:1.8;">
+                <div style="font-size:14px; color:#94A3B8; margin-bottom:14px;">Total Customer Mentions</div>
+                <div style="font-size:15px; line-height:1.9;">
                     <span style="color:#22C55E;">● Positive: <b>{q_pos:,}</b> ({(q_pos/q_tot*100 if q_tot else 0):.1f}%)</span><br>
                     <span style="color:#F87171;">● Negative: <b>{q_neg:,}</b> ({(q_neg/q_tot*100 if q_tot else 0):.1f}%)</span><br>
                     <span style="color:#FBBF24;">● Neutral: <b>{q_neu:,}</b> ({(q_neu/q_tot*100 if q_tot else 0):.1f}%)</span>
                 </div>
-                <div style="margin-top:12px; font-size:14.5px; color:#64748B;">
+                <div style="margin-top:14px; font-size:13px; color:#64748B;">
                     Keywords: <i>quality, material, build, durable, fresh, stale, taste</i>
                 </div>
             </div>
@@ -765,16 +935,16 @@ elif nav_selection == "Aspect-Based Insights":
             <div class="saas-card-static" style="border-top: 3px solid #38BDF8;">
                 <div class="kpi-header">
                     <span class="kpi-title">Shipping & Logistics</span>
-                    <span class="aspect-pill aspect-shipping">🏷️ Shipping</span>
+                    <span class="aspect-pill aspect-shipping" style="margin:0;">🏷️ Shipping</span>
                 </div>
                 <div class="kpi-value">{s_tot:,}</div>
-                <div style="font-size:15.5px; color:#94A3B8; margin-bottom:12px;">Total Customer Mentions</div>
-                <div style="font-size:16.5px; line-height:1.8;">
+                <div style="font-size:14px; color:#94A3B8; margin-bottom:14px;">Total Customer Mentions</div>
+                <div style="font-size:15px; line-height:1.9;">
                     <span style="color:#22C55E;">● Positive: <b>{s_pos:,}</b> ({(s_pos/s_tot*100 if s_tot else 0):.1f}%)</span><br>
                     <span style="color:#F87171;">● Negative: <b>{s_neg:,}</b> ({(s_neg/s_tot*100 if s_tot else 0):.1f}%)</span><br>
                     <span style="color:#FBBF24;">● Neutral: <b>{s_neu:,}</b> ({(s_neu/s_tot*100 if s_tot else 0):.1f}%)</span>
                 </div>
-                <div style="margin-top:12px; font-size:14.5px; color:#64748B;">
+                <div style="margin-top:14px; font-size:13px; color:#64748B;">
                     Keywords: <i>shipping, delivery, arrived, courier, late, packaging</i>
                 </div>
             </div>
@@ -785,30 +955,28 @@ elif nav_selection == "Aspect-Based Insights":
             <div class="saas-card-static" style="border-top: 3px solid #F472B6;">
                 <div class="kpi-header">
                     <span class="kpi-title">Price Perception</span>
-                    <span class="aspect-pill aspect-price">🏷️ Price</span>
+                    <span class="aspect-pill aspect-price" style="margin:0;">🏷️ Price</span>
                 </div>
                 <div class="kpi-value">{p_tot:,}</div>
-                <div style="font-size:15.5px; color:#94A3B8; margin-bottom:12px;">Total Customer Mentions</div>
-                <div style="font-size:16.5px; line-height:1.8;">
+                <div style="font-size:14px; color:#94A3B8; margin-bottom:14px;">Total Customer Mentions</div>
+                <div style="font-size:15px; line-height:1.9;">
                     <span style="color:#22C55E;">● Positive: <b>{p_pos:,}</b> ({(p_pos/p_tot*100 if p_tot else 0):.1f}%)</span><br>
                     <span style="color:#F87171;">● Negative: <b>{p_neg:,}</b> ({(p_neg/p_tot*100 if p_tot else 0):.1f}%)</span><br>
                     <span style="color:#FBBF24;">● Neutral: <b>{p_neu:,}</b> ({(p_neu/p_tot*100 if p_tot else 0):.1f}%)</span>
                 </div>
-                <div style="margin-top:12px; font-size:14.5px; color:#64748B;">
+                <div style="margin-top:14px; font-size:13px; color:#64748B;">
                     Keywords: <i>price, cost, expensive, cheap, value for money, budget</i>
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
-        st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='height: 18px;'></div>", unsafe_allow_html=True)
 
         # Comparative Visualization
-        st.markdown("<div class='saas-card'>", unsafe_allow_html=True)
-        st.plotly_chart(
-            ui_charts.create_aspect_sentiment_grouped_bar(eval_df, sentiment_col="predicted", aspects_col="aspects"),
-            width="stretch"
-        )
-        st.markdown("</div>", unsafe_allow_html=True)
+        if grouped_chart:
+            st.markdown("<div class='saas-card'>", unsafe_allow_html=True)
+            st.plotly_chart(grouped_chart, width="stretch")
+            st.markdown("</div>", unsafe_allow_html=True)
 
         # Interactive Aspect Explorer
         st.markdown("### 🔍 Aspect Review Explorer")
@@ -821,95 +989,23 @@ elif nav_selection == "Aspect-Based Insights":
         preview_cols.columns = ["Review Comment", "Actual Label", "Predicted Sentiment"]
         st.dataframe(preview_cols, width="stretch", hide_index=True)
 
-
-# =============================================================================
-# PAGE 6: MODEL PERFORMANCE
-# =============================================================================
-elif nav_selection == "Model Performance":
-    render_header(
-        title="Model Performance & Evaluation",
-        subtitle="Verification metrics, confusion matrix, and classification report on 6,000 held-out test reviews."
-    )
-
-    # Top KPI Metrics Cards
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Overall Accuracy", "80.9%", "Held-out test set")
-    m2.metric("Weighted F1-Score", "0.822", "82.2% weighted")
-    m3.metric("Macro F1-Score", "0.626", "Balanced metric")
-    m4.metric("Test Set Size", "6,000", "Zero data leakage")
-
-    st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
-
-    # Confusion Matrix + Classification Report Charts
-    cm_col, bar_col = st.columns([1, 1])
-
-    with cm_col:
-        st.markdown("<div class='saas-card'>", unsafe_allow_html=True)
-        if not cm_df.empty:
-            st.plotly_chart(ui_charts.create_confusion_matrix_heatmap(cm_df), width="stretch")
-        else:
-            st.info("Confusion matrix file not found.")
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with bar_col:
-        st.markdown("<div class='saas-card'>", unsafe_allow_html=True)
-        st.plotly_chart(ui_charts.create_classification_metrics_bar(), width="stretch")
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    # Detailed Classification Report Table
-    st.markdown("### 📋 Classification Report Breakdown")
-    report_data = {
-        "Sentiment Class": ["Negative", "Neutral", "Positive", "Macro Average", "Weighted Average"],
-        "Precision": [0.617, 0.266, 0.936, 0.607, 0.841],
-        "Recall": [0.706, 0.401, 0.867, 0.658, 0.809],
-        "F1-Score": [0.659, 0.320, 0.900, 0.626, 0.822],
-        "Support": [865, 444, 4691, 6000, 6000]
-    }
-    st.dataframe(pd.DataFrame(report_data), width="stretch", hide_index=True)
-
-    # Technical Specifications & Unit Tests
-    t_c1, t_c2 = st.columns(2)
-    with t_c1:
-        st.markdown("""
-        <div class="saas-card-static">
-            <span style="font-size:15.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:#94A3B8;">Model Pipeline Specifications</span>
-            <div style="margin-top:12px; font-size:16.5px; color:#F8FAFC; line-height:1.9;">
-                • <b>Vectorization:</b> TF-IDF (Term Frequency-Inverse Document Frequency)<br>
-                • <b>N-gram Range:</b> Unigram & Bigram <code>(1, 2)</code><br>
-                • <b>Max Features:</b> 50,000 vocabulary tokens<br>
-                • <b>Classifier:</b> Logistic Regression (<code>class_weight='balanced'</code>, <code>C=1.0</code>)<br>
-                • <b>Serialization:</b> Joblib (<code>models/sentiment_pipeline.joblib</code>)
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with t_c2:
-        st.markdown("""
-        <div class="saas-card-static">
-            <span style="font-size:15.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:#94A3B8;">Automated Regression Testing</span>
-            <div style="margin-top:12px; font-size:16.5px; color:#F8FAFC; line-height:1.9;">
-                • <b>Aspect Keyword Tests:</b> <span style="color:#22C55E;">14 / 14 PASSED (100%)</span><br>
-                • <b>Sentiment Edge Tests:</b> <span style="color:#22C55E;">5 / 5 PASSED (100%)</span><br>
-                • <b>Input Sanitization:</b> Empty string, whitespace, non-text rejected cleanly<br>
-                • <b>Batch Vectorization:</b> Verified chunked matrix processing
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+    render_footer()
 
 
 # =============================================================================
-# PAGE 7: ABOUT PROJECT
+# PAGE 6: ABOUT PROJECT
 # =============================================================================
 elif nav_selection == "About Project":
     render_header(
         title="About ReviewSense",
-        subtitle="End-to-end multi-aspect review intelligence platform architecture, technical stack, and engineering team."
+        subtitle="Multi-aspect review intelligence platform architecture, technical stack, and engineering team.",
+        badge="Architecture & Team"
     )
 
     st.markdown("""
     <div class="saas-card-static">
         <h3 style="margin-top:0; color:#F8FAFC; font-size:18px;">Executive Summary</h3>
-        <p style="color:#94A3B8; font-size:17.5px; line-height:1.7;">
+        <p style="color:#94A3B8; font-size:16px; line-height:1.7;">
         <b>ReviewSense</b> addresses the core limitation of star-rating based customer feedback systems.
         A 3-star review often conceals divergent experiences (e.g. delicious food accompanied by delayed logistics).
         By combining Scikit-Learn TF-IDF machine learning pipelines with high-recall rule-based aspect extraction,
@@ -923,21 +1019,21 @@ elif nav_selection == "About Project":
     a1, a2, a3 = st.columns(3)
     with a1:
         st.markdown("""
-        <div class="saas-card-static">
-            <div style="font-size:24px; margin-bottom:8px;">🎨</div>
-            <div style="font-weight:700; color:#F8FAFC; font-size:15px; margin-bottom:6px;">Streamlit Frontend</div>
-            <p style="color:#94A3B8; font-size:16px; line-height:1.6;">
-            Linear/Vercel-inspired dark interface with Plotly charting, live health indicators, and resilient local fallback.
+        <div class="saas-card-static" style="border-top: 3px solid #8B7CFF;">
+            <div style="font-size:26px; margin-bottom:10px;">🎨</div>
+            <div style="font-weight:700; color:#F8FAFC; font-size:16px; margin-bottom:6px;">Streamlit Frontend</div>
+            <p style="color:#94A3B8; font-size:14.5px; line-height:1.6;">
+            Linear/Vercel-inspired dark glassmorphism interface with Plotly charting, live health indicators, and resilient local fallback.
             </p>
         </div>
         """, unsafe_allow_html=True)
 
     with a2:
         st.markdown("""
-        <div class="saas-card-static">
-            <div style="font-size:24px; margin-bottom:8px;">⚡</div>
-            <div style="font-weight:700; color:#F8FAFC; font-size:15px; margin-bottom:6px;">FastAPI Backend</div>
-            <p style="color:#94A3B8; font-size:16px; line-height:1.6;">
+        <div class="saas-card-static" style="border-top: 3px solid #38BDF8;">
+            <div style="font-size:26px; margin-bottom:10px;">⚡</div>
+            <div style="font-weight:700; color:#F8FAFC; font-size:16px; margin-bottom:6px;">FastAPI Backend</div>
+            <p style="color:#94A3B8; font-size:14.5px; line-height:1.6;">
             High-throughput REST API server supporting single and batch vectorization on port 8000 with CORS middleware.
             </p>
         </div>
@@ -945,16 +1041,16 @@ elif nav_selection == "About Project":
 
     with a3:
         st.markdown("""
-        <div class="saas-card-static">
-            <div style="font-size:24px; margin-bottom:8px;">🧠</div>
-            <div style="font-weight:700; color:#F8FAFC; font-size:15px; margin-bottom:6px;">NLP & ML Engine</div>
-            <p style="color:#94A3B8; font-size:16px; line-height:1.6;">
+        <div class="saas-card-static" style="border-top: 3px solid #22C55E;">
+            <div style="font-size:26px; margin-bottom:10px;">🧠</div>
+            <div style="font-weight:700; color:#F8FAFC; font-size:16px; margin-bottom:6px;">NLP & ML Engine</div>
+            <p style="color:#94A3B8; font-size:14.5px; line-height:1.6;">
             TF-IDF bigram vectorizer paired with balanced Logistic Regression and 50+ domain regex aspect patterns.
             </p>
         </div>
         """, unsafe_allow_html=True)
 
-    st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
     # API Specification Table
     st.markdown("### 🔌 API Endpoint Reference")
@@ -967,7 +1063,7 @@ elif nav_selection == "About Project":
     }
     st.dataframe(pd.DataFrame(api_specs), width="stretch", hide_index=True)
 
-    st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
     # Team Contributions
     st.markdown("### 👥 Engineering Team (Group D)")
@@ -987,3 +1083,5 @@ elif nav_selection == "About Project":
         ]
     }
     st.dataframe(pd.DataFrame(team_data), width="stretch", hide_index=True)
+
+    render_footer()

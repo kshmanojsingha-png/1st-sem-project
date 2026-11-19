@@ -1,15 +1,15 @@
 """
-ReviewSense - UI Theme & Design System
-Linear / Vercel / Stripe-inspired Dark Theme System
-Configured for Projector Presentation Readability (15-19px Information Typography)
+ReviewSense - UI Theme & Design System (Ultra-Modern Premium Dark Edition)
+Linear / Vercel / Stripe-inspired Dark Glassmorphism Design System
+Configured for high-impact presentations and executive dashboard aesthetics
 """
 
 # Color Palette Constants
 THEME_COLORS = {
     "bg_primary": "#0B0F19",
     "bg_secondary": "#111827",
-    "bg_card": "#151C2C",
-    "bg_elevated": "#1C2537",
+    "bg_card": "rgba(21, 28, 44, 0.75)",
+    "bg_elevated": "rgba(28, 37, 55, 0.85)",
     "accent_primary": "#8B7CFF",
     "accent_secondary": "#38BDF8",
     "positive": "#22C55E",
@@ -19,7 +19,7 @@ THEME_COLORS = {
     "text_secondary": "#94A3B8",
     "text_muted": "#64748B",
     "border_subtle": "#1E293B",
-    "border_card": "rgba(255, 255, 255, 0.07)",
+    "border_card": "rgba(255, 255, 255, 0.08)",
 }
 
 SENTIMENT_COLORS = {
@@ -36,143 +36,200 @@ ASPECT_COLORS = {
 
 CUSTOM_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
-
-/* Base Styles - Projector-Friendly Informational Scale */
+/* -------------------------------------------------------------
+   1. Typography & Base System Fonts (Offline-first, high performance)
+------------------------------------------------------------- */
 html, body, [class*="css"] {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, Helvetica, Arial, sans-serif;
     color: #F8FAFC;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-/* Informational Paragraphs & Body Content */
+/* Informational Paragraphs & Body Content (Projector / Presentation Optimized) */
 p, span, li, label, .stMarkdown p, .stMarkdown span, .stMarkdown li {
-    font-size: 17.5px;
+    font-size: 16.5px;
     line-height: 1.65;
 }
 
-/* STRICT RULE: DO NOT MODIFY HEADINGS APPEARANCE */
 h1, h2, h3, h4, .font-heading {
-    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important;
-    letter-spacing: -0.02em;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", sans-serif !important;
+    letter-spacing: -0.025em;
+    font-weight: 700;
 }
 
-/* App Background */
+/* -------------------------------------------------------------
+   2. High-Performance Ambient Mesh Gradient (Optimized Zero-Lag)
+------------------------------------------------------------- */
 .stApp {
-    background-color: #0B0F19;
+    background-color: #080C14;
     background-image: 
-        radial-gradient(ellipse at 15% 0%, rgba(139, 124, 255, 0.05) 0%, transparent 50%),
-        radial-gradient(ellipse at 85% 0%, rgba(56, 189, 248, 0.04) 0%, transparent 50%);
+        radial-gradient(circle at 18% 12%, rgba(139, 124, 255, 0.10) 0%, transparent 45%),
+        radial-gradient(circle at 82% 18%, rgba(56, 189, 248, 0.08) 0%, transparent 42%),
+        radial-gradient(circle at 50% 85%, rgba(16, 185, 129, 0.06) 0%, transparent 50%),
+        linear-gradient(180deg, #080C14 0%, #0D1322 100%);
     background-attachment: fixed;
     color: #F8FAFC;
 }
 
-/* Sidebar Clean Styling */
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #0B0F19;
+}
+::-webkit-scrollbar-thumb {
+    background: #1E293B;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #334155;
+}
+
+/* -------------------------------------------------------------
+   3. Sidebar - Frosted Glass & Navigation Glow
+------------------------------------------------------------- */
 [data-testid="stSidebar"] {
-    background-color: #0B0F19 !important;
-    border-right: 1px solid #1E293B !important;
+    background: rgba(11, 15, 25, 0.88) !important;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
 [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
-    gap: 0.6rem;
+    gap: 0.65rem;
 }
 
-/* Brand Header in Sidebar */
+/* Brand Header */
 .brand-container {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 8px 4px 16px 4px;
-    border-bottom: 1px solid #1E293B;
-    margin-bottom: 8px;
+    gap: 14px;
+    padding: 10px 6px 18px 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 12px;
 }
 
 .brand-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 9px;
-    background: linear-gradient(135deg, #8B7CFF 0%, #6366F1 100%);
+    width: 42px;
+    height: 42px;
+    border-radius: 11px;
+    background: linear-gradient(135deg, #8B7CFF 0%, #4F46E5 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
-    font-weight: 700;
-    color: #0B0F19;
-    box-shadow: 0 4px 12px rgba(139, 124, 255, 0.25);
+    font-size: 20px;
+    font-weight: 800;
+    color: #FFFFFF;
+    box-shadow: 0 4px 16px rgba(139, 124, 255, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.brand-container:hover .brand-icon {
+    transform: rotate(8deg) scale(1.08);
 }
 
 .brand-text-title {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 17px !important;
-    font-weight: 700 !important;
+    font-size: 19px !important;
+    font-weight: 800 !important;
     color: #F8FAFC;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
     line-height: 1.2;
+    background: linear-gradient(135deg, #FFFFFF 0%, #CBD5E1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .brand-text-subtitle {
-    font-size: 14px !important;
-    color: #94A3B8;
+    font-size: 12.5px !important;
+    color: #8B7CFF;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    font-weight: 500;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    margin-top: 1px;
 }
 
-/* Navigation Radio Styling */
+/* Sidebar Radio Navigation Items */
 [data-testid="stSidebar"] [data-testid="stRadio"] > label {
     display: none;
 }
 
 [data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] {
-    gap: 5px;
+    gap: 6px;
 }
 
 [data-testid="stSidebar"] [data-testid="stRadio"] label {
-    background: transparent;
+    background: rgba(255, 255, 255, 0.02);
     border: 1px solid transparent;
-    border-radius: 8px;
+    border-radius: 9px;
     color: #94A3B8 !important;
-    font-size: 16px !important;
+    font-size: 15.5px !important;
     font-weight: 500 !important;
     padding: 10px 14px !important;
-    transition: all 0.15s ease-in-out;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    align-items: center;
 }
 
 [data-testid="stSidebar"] [data-testid="stRadio"] label:hover {
-    background: #111827;
+    background: rgba(255, 255, 255, 0.05);
     color: #F8FAFC !important;
-    border-color: #1E293B;
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: translateX(3px);
 }
 
 [data-testid="stSidebar"] [data-testid="stRadio"] label[data-checked="true"],
 [data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked) {
-    background: #151C2C !important;
-    color: #F8FAFC !important;
+    background: linear-gradient(90deg, rgba(139, 124, 255, 0.18) 0%, rgba(139, 124, 255, 0.05) 100%) !important;
+    color: #FFFFFF !important;
     font-weight: 600 !important;
-    border-color: rgba(139, 124, 255, 0.35) !important;
+    border: 1px solid rgba(139, 124, 255, 0.35) !important;
     border-left: 3px solid #8B7CFF !important;
+    box-shadow: 0 4px 12px rgba(139, 124, 255, 0.15);
+    transform: translateX(2px);
 }
 
-/* Main Top Header */
+/* -------------------------------------------------------------
+   4. Top Header & Live Status Indicators
+------------------------------------------------------------- */
 .top-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 0 24px 0;
-    border-bottom: 1px solid #1E293B;
+    padding: 4px 0 22px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     margin-bottom: 24px;
+    position: relative;
+}
+
+.top-header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 80px;
+    height: 2px;
+    background: linear-gradient(90deg, #8B7CFF 0%, transparent 100%);
 }
 
 .top-header-title {
-    font-size: 24px !important;
-    font-weight: 700 !important;
+    font-size: 26px !important;
+    font-weight: 800 !important;
     color: #F8FAFC;
     margin: 0;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, #FFFFFF 0%, #E2E8F0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .top-header-subtitle {
-    font-size: 16.5px !important;
+    font-size: 16px !important;
     color: #94A3B8;
-    margin-top: 4px;
+    margin-top: 5px;
     margin-bottom: 0;
     line-height: 1.5;
 }
@@ -180,261 +237,336 @@ h1, h2, h3, h4, .font-heading {
 .status-badge-container {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
 .status-pill {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     padding: 6px 14px !important;
     border-radius: 20px;
-    font-size: 15px !important;
-    font-weight: 500;
+    font-size: 14.5px !important;
+    font-weight: 600;
     letter-spacing: 0.02em;
+    backdrop-filter: blur(10px);
+    transition: all 0.2s ease;
 }
 
 .status-pill-online {
-    background: rgba(34, 197, 94, 0.1);
+    background: rgba(34, 197, 94, 0.12);
     color: #22C55E;
-    border: 1px solid rgba(34, 197, 94, 0.25);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    box-shadow: 0 2px 10px rgba(34, 197, 94, 0.15);
 }
 
 .status-pill-fallback {
-    background: rgba(251, 191, 36, 0.1);
+    background: rgba(251, 191, 36, 0.12);
     color: #FBBF24;
-    border: 1px solid rgba(251, 191, 36, 0.25);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    box-shadow: 0 2px 10px rgba(251, 191, 36, 0.15);
+}
+
+@keyframes pulseRadar {
+    0% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+    }
 }
 
 .pulse-dot {
-    width: 7px;
-    height: 7px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     background-color: currentColor;
+    animation: pulseRadar 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
 }
 
-/* Modern Card System */
+/* -------------------------------------------------------------
+   5. Glassmorphism Cards & Enterprise Containers
+------------------------------------------------------------- */
 .saas-card {
-    background: #151C2C;
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 12px;
-    padding: 22px 24px;
-    margin-bottom: 18px;
-    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+    background: rgba(21, 28, 44, 0.75);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 24px 26px;
+    margin-bottom: 20px;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    position: relative;
+    overflow: hidden;
 }
 
 .saas-card:hover {
-    border-color: rgba(139, 124, 255, 0.3);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    border-color: rgba(139, 124, 255, 0.38);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45), 0 0 20px rgba(139, 124, 255, 0.12);
 }
 
 .saas-card-static {
-    background: #151C2C;
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 12px;
-    padding: 22px 24px;
-    margin-bottom: 18px;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+    background: rgba(21, 28, 44, 0.75);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 24px 26px;
+    margin-bottom: 20px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
-/* KPI Cards */
+/* -------------------------------------------------------------
+   6. Executive KPI Cards with Shimmer & Accents
+------------------------------------------------------------- */
 .kpi-card {
-    background: #151C2C;
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 12px;
-    padding: 20px 22px;
-    transition: transform 0.15s ease, border-color 0.15s ease;
+    background: rgba(21, 28, 44, 0.78);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 22px 24px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+.kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #8B7CFF 0%, #38BDF8 100%);
+    opacity: 0.6;
+    transition: opacity 0.25s ease;
 }
 
 .kpi-card:hover {
-    border-color: rgba(139, 124, 255, 0.35);
-    transform: translateY(-2px);
+    border-color: rgba(139, 124, 255, 0.4);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4), 0 0 16px rgba(139, 124, 255, 0.1);
+}
+
+.kpi-card:hover::before {
+    opacity: 1;
 }
 
 .kpi-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 .kpi-title {
     color: #94A3B8;
-    font-size: 16px !important;
-    font-weight: 600;
+    font-size: 14.5px !important;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.07em;
 }
 
 .kpi-icon {
-    font-size: 18px;
-    opacity: 0.85;
+    font-size: 22px;
+    opacity: 0.9;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
 }
 
 .kpi-value {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 28px !important;
-    font-weight: 700 !important;
+    font-size: 32px !important;
+    font-weight: 800 !important;
     color: #F8FAFC;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-    margin-bottom: 6px;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin-bottom: 8px;
 }
 
 .kpi-subtext {
-    font-size: 15.5px !important;
+    font-size: 15px !important;
     color: #94A3B8;
     font-weight: 400;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
 }
 
-/* Sentiment Badges */
+/* -------------------------------------------------------------
+   7. Sentiment & Aspect Tags / Badges
+------------------------------------------------------------- */
 .sentiment-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     padding: 6px 14px !important;
-    border-radius: 6px;
-    font-size: 15.5px !important;
-    font-weight: 600;
+    border-radius: 8px;
+    font-size: 15px !important;
+    font-weight: 700;
     letter-spacing: 0.02em;
+    backdrop-filter: blur(8px);
 }
 
 .sentiment-positive {
-    background: rgba(34, 197, 94, 0.12);
+    background: rgba(34, 197, 94, 0.14);
     color: #22C55E;
-    border: 1px solid rgba(34, 197, 94, 0.28);
+    border: 1px solid rgba(34, 197, 94, 0.35);
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.15);
 }
 
 .sentiment-negative {
-    background: rgba(248, 113, 113, 0.12);
+    background: rgba(248, 113, 113, 0.14);
     color: #F87171;
-    border: 1px solid rgba(248, 113, 113, 0.28);
+    border: 1px solid rgba(248, 113, 113, 0.35);
+    box-shadow: 0 2px 8px rgba(248, 113, 113, 0.15);
 }
 
 .sentiment-neutral {
-    background: rgba(251, 191, 36, 0.12);
+    background: rgba(251, 191, 36, 0.14);
     color: #FBBF24;
-    border: 1px solid rgba(251, 191, 36, 0.28);
+    border: 1px solid rgba(251, 191, 36, 0.35);
+    box-shadow: 0 2px 8px rgba(251, 191, 36, 0.15);
 }
 
-/* Aspect Tags */
 .aspect-pill {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 14px !important;
-    border-radius: 6px;
-    font-size: 15.5px !important;
-    font-weight: 500;
+    padding: 7px 15px !important;
+    border-radius: 8px;
+    font-size: 15px !important;
+    font-weight: 600;
     margin-right: 8px;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
 }
 
 .aspect-quality {
-    background: rgba(129, 140, 248, 0.12);
-    color: #818CF8;
-    border: 1px solid rgba(129, 140, 248, 0.28);
+    background: rgba(129, 140, 248, 0.14);
+    color: #A5B4FC;
+    border: 1px solid rgba(129, 140, 248, 0.35);
+    box-shadow: 0 2px 8px rgba(129, 140, 248, 0.15);
 }
 
 .aspect-shipping {
-    background: rgba(56, 189, 248, 0.12);
-    color: #38BDF8;
-    border: 1px solid rgba(56, 189, 248, 0.28);
+    background: rgba(56, 189, 248, 0.14);
+    color: #7DD3FC;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    box-shadow: 0 2px 8px rgba(56, 189, 248, 0.15);
 }
 
 .aspect-price {
-    background: rgba(244, 114, 182, 0.12);
+    background: rgba(244, 114, 182, 0.14);
     color: #F472B6;
-    border: 1px solid rgba(244, 114, 182, 0.28);
+    border: 1px solid rgba(244, 114, 182, 0.35);
+    box-shadow: 0 2px 8px rgba(244, 114, 182, 0.15);
 }
 
 .aspect-none {
     background: rgba(148, 163, 184, 0.08);
     color: #94A3B8;
-    border: 1px solid rgba(148, 163, 184, 0.18);
+    border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
-/* Confidence Meter Bar */
+/* -------------------------------------------------------------
+   8. Confidence Meter & Progress Indicators
+------------------------------------------------------------- */
 .confidence-container {
-    margin-top: 14px;
-    padding-top: 14px;
-    border-top: 1px solid #1E293B;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .confidence-header {
     display: flex;
     justify-content: space-between;
-    font-size: 16px !important;
+    font-size: 15.5px !important;
     color: #94A3B8;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
 }
 
 .confidence-bar-bg {
     width: 100%;
-    height: 8px;
-    background: #1E293B;
-    border-radius: 4px;
+    height: 10px;
+    background: rgba(30, 41, 59, 0.8);
+    border-radius: 6px;
     overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .confidence-bar-fill {
     height: 100%;
-    border-radius: 4px;
-    transition: width 0.4s ease;
+    border-radius: 6px;
+    transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Buttons */
+/* -------------------------------------------------------------
+   9. Buttons - Modern Gradient & Glowing Interactivity
+------------------------------------------------------------- */
 .stButton > button {
-    background: #8B7CFF !important;
-    color: #0B0F19 !important;
-    font-weight: 600 !important;
-    font-size: 16.5px !important;
+    background: linear-gradient(135deg, #8B7CFF 0%, #6366F1 100%) !important;
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+    font-size: 16px !important;
     border: none !important;
-    border-radius: 8px !important;
+    border-radius: 10px !important;
     padding: 12px 24px !important;
-    transition: all 0.15s ease-in-out !important;
-    box-shadow: 0 2px 8px rgba(139, 124, 255, 0.25) !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    box-shadow: 0 4px 16px rgba(139, 124, 255, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+    cursor: pointer !important;
 }
 
 .stButton > button:hover {
-    background: #9D91FF !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 4px 14px rgba(139, 124, 255, 0.38) !important;
+    background: linear-gradient(135deg, #9E91FF 0%, #7579F3 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 24px rgba(139, 124, 255, 0.48), 0 0 12px rgba(139, 124, 255, 0.3) !important;
 }
 
 .stButton > button:active {
     transform: translateY(0px) !important;
 }
 
-/* Secondary Button / Outline */
 button[kind="secondary"] {
-    background: #151C2C !important;
+    background: rgba(21, 28, 44, 0.85) !important;
     color: #F8FAFC !important;
-    border: 1px solid #1E293B !important;
-    box-shadow: none !important;
-    font-size: 16.5px !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+    font-size: 15.5px !important;
 }
 
 button[kind="secondary"]:hover {
-    background: #1C2537 !important;
-    border-color: #334155 !important;
+    background: rgba(30, 41, 59, 0.95) !important;
+    border-color: rgba(139, 124, 255, 0.4) !important;
+    color: #8B7CFF !important;
 }
 
-/* Input Fields & Text Area */
+/* -------------------------------------------------------------
+   10. Form Controls, Inputs & Selectors
+------------------------------------------------------------- */
 .stTextInput > div > div > input,
 .stTextArea > div > div > textarea,
 .stSelectbox div[data-baseweb="select"] {
-    background-color: #111827 !important;
-    border: 1px solid #1E293B !important;
-    border-radius: 8px !important;
+    background-color: rgba(17, 24, 39, 0.85) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 10px !important;
     color: #F8FAFC !important;
-    font-size: 17.5px !important;
+    font-size: 16.5px !important;
     line-height: 1.55 !important;
+    transition: all 0.2s ease !important;
+}
+
+.stTextInput > div > div > input:focus,
+.stTextArea > div > div > textarea:focus {
+    border-color: #8B7CFF !important;
+    box-shadow: 0 0 0 2px rgba(139, 124, 255, 0.25) !important;
+    background-color: rgba(17, 24, 39, 0.95) !important;
 }
 
 .stTextInput label,
@@ -442,163 +574,133 @@ button[kind="secondary"]:hover {
 .stSelectbox label,
 .stNumberInput label,
 .stRadio label {
-    font-size: 16.5px !important;
-    font-weight: 500 !important;
-    color: #F8FAFC !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: #E2E8F0 !important;
 }
 
-.stTextInput input::placeholder,
-.stTextArea textarea::placeholder {
-    font-size: 17px !important;
-    color: #64748B !important;
-}
-
-.stTextInput > div > div > input:focus,
-.stTextArea > div > div > textarea:focus {
-    border-color: #8B7CFF !important;
-    box-shadow: 0 0 0 1px #8B7CFF !important;
-}
-
-/* Tabs */
+/* -------------------------------------------------------------
+   11. Tabs Styling
+------------------------------------------------------------- */
 .stTabs [data-baseweb="tab-list"] {
     background: transparent;
-    border-bottom: 1px solid #1E293B;
-    gap: 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    gap: 20px;
 }
 
 .stTabs [data-baseweb="tab"] {
     background: transparent !important;
     color: #94A3B8 !important;
-    font-size: 16.5px !important;
-    font-weight: 500 !important;
-    padding: 12px 6px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    padding: 12px 8px !important;
     border: none !important;
     border-bottom: 2px solid transparent !important;
+    transition: all 0.2s ease !important;
+}
+
+.stTabs [data-baseweb="tab"]:hover {
+    color: #F8FAFC !important;
 }
 
 .stTabs [aria-selected="true"] {
     color: #8B7CFF !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
     border-bottom: 2px solid #8B7CFF !important;
 }
 
-/* Metric Display override */
+/* -------------------------------------------------------------
+   12. Metrics & Tables
+------------------------------------------------------------- */
 [data-testid="stMetric"] {
-    background: #151C2C;
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 10px;
-    padding: 16px 18px;
+    background: rgba(21, 28, 44, 0.75);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 18px 20px;
 }
 
 [data-testid="stMetricLabel"] {
     color: #94A3B8 !important;
-    font-size: 16px !important;
-    font-weight: 600 !important;
+    font-size: 14.5px !important;
+    font-weight: 700 !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.05em !important;
+    letter-spacing: 0.06em !important;
 }
 
 [data-testid="stMetricValue"] {
     color: #F8FAFC !important;
-    font-family: 'Plus Jakarta Sans', sans-serif !important;
-    font-weight: 700 !important;
+    font-weight: 800 !important;
 }
 
-[data-testid="stMetricDelta"] {
-    font-size: 15px !important;
-}
-
-/* Tables and DataFrames Readability for Projector */
 [data-testid="stDataFrame"], [data-testid="stTable"] {
-    font-size: 16.5px !important;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-[data-testid="stDataFrame"] div, [data-testid="stDataFrame"] span {
-    font-size: 16.5px !important;
-    line-height: 1.55 !important;
-}
-
-table, th, td {
-    font-size: 16.5px !important;
-    line-height: 1.6 !important;
-    padding: 10px 14px !important;
-}
-
-/* Captions and Footnotes */
-[data-testid="stCaptionContainer"], small {
-    font-size: 14.5px !important;
-    color: #94A3B8 !important;
-    line-height: 1.5 !important;
-}
-
-/* Alerts and Messages */
-[data-testid="stAlert"] p, [data-testid="stAlert"] span {
-    font-size: 16.5px !important;
-    line-height: 1.55 !important;
-}
-
-/* Clean Empty State */
+/* Empty State */
 .empty-state {
     text-align: center;
-    padding: 48px 24px;
-    background: #151C2C;
-    border: 1px dashed #1E293B;
-    border-radius: 12px;
-    margin: 16px 0;
+    padding: 52px 28px;
+    background: rgba(21, 28, 44, 0.65);
+    border: 1.5px dashed rgba(255, 255, 255, 0.14);
+    border-radius: 14px;
+    margin: 20px 0;
 }
 
 .empty-state-icon {
-    font-size: 32px;
-    margin-bottom: 12px;
-    opacity: 0.7;
+    font-size: 38px;
+    margin-bottom: 14px;
+    opacity: 0.85;
 }
 
 .empty-state-title {
-    font-size: 18px !important;
-    font-weight: 600 !important;
+    font-size: 20px !important;
+    font-weight: 700 !important;
     color: #F8FAFC;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
 
 .empty-state-desc {
-    font-size: 16.5px !important;
+    font-size: 16px !important;
     color: #94A3B8;
-    max-width: 480px;
+    max-width: 500px;
     margin: 0 auto;
     line-height: 1.6;
 }
 
-/* Presets Container */
+/* Preset Chips */
 .presets-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 12px;
+    gap: 10px;
+    margin-bottom: 14px;
 }
 
 .preset-chip {
     display: inline-block;
     padding: 8px 16px !important;
-    border-radius: 6px;
-    background: #151C2C;
-    border: 1px solid #1E293B;
+    border-radius: 8px;
+    background: rgba(21, 28, 44, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     color: #94A3B8;
-    font-size: 15.5px !important;
+    font-size: 15px !important;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all 0.2s ease;
 }
 
 .preset-chip:hover {
     color: #F8FAFC;
     border-color: #8B7CFF;
-    background: #1C2537;
+    background: rgba(30, 41, 59, 0.9);
 }
 
-/* Micro Footers & Dividers */
+/* Micro Dividers */
 hr {
     border: none;
-    border-top: 1px solid #1E293B !important;
-    margin: 24px 0 !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    margin: 28px 0 !important;
 }
 
 footer { visibility: hidden; }
