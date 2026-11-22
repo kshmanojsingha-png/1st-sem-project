@@ -11,28 +11,90 @@ ReviewSense reads a product review and predicts whether it is positive, neutral 
 - Dashboard: sentiment donut chart, aspect charts, aspect filter
 - FastAPI endpoint for batch predictions
 
-## 3. Project Structure
+## 3. Project Structure (Separated Architecture)
+
 ```
-ml/train.py                      trains the model and saves it with Joblib
-ml/evaluate.py                   held-out test evaluation (Macro-F1, Weighted-F1, confusion matrix)
-ml/predictor.py                  loads the saved model; predict(text) returns the sentiment
-ml/test_cases.py                 model test cases
-app.py                           Streamlit web page
-simran_all_in_one.py             aspect tags, charts, evaluation visuals, tests, documentation generator
+Project/
+├── frontend/                     # Standalone Frontend (Streamlit Cloud Ready)
+│   ├── .streamlit/config.toml    # Theme and server configuration
+│   ├── data/predictions.csv      # Held-out evaluation predictions (6k reviews)
+│   ├── final_food_reviews.csv    # Amazon food reviews catalog dataset
+│   ├── app.py                    # Main Streamlit SaaS dashboard
+│   ├── api_client.py             # Backend REST client + offline fallback
+│   ├── ui_charts.py              # Plotly chart visualizations
+│   ├── ui_theme.py               # Enterprise dark theme design system
+│   ├── aspect_detection.py       # Aspect keyword matching engine
+│   ├── requirements.txt          # Frontend dependencies
+│   └── README.md                 # Frontend deployment guide
+│
+├── backend/                      # Standalone Backend (Render / Railway / Docker Ready)
+│   ├── ml/                       # Machine learning pipeline
+│   │   ├── predictor.py          # Model inference & probabilities
+│   │   ├── preprocessing.py      # Text cleaning and tokenization
+│   │   ├── train.py              # Model training script
+│   │   └── evaluate.py           # Model evaluation metrics
+│   ├── models/                   # Serialized ML artifacts
+│   │   └── sentiment_pipeline.joblib # Trained TF-IDF + Logistic Regression model
+│   ├── api.py                    # FastAPI REST application
+│   ├── aspect_detection.py       # Aspect extraction microservice
+│   ├── requirements.txt          # Backend dependencies
+│   ├── Dockerfile                # Production Docker container definition
+│   ├── Procfile                  # Cloud web process definition
+│   ├── render.yaml               # 1-click Render blueprint
+│   └── README.md                 # Backend deployment guide
+│
+├── run_app.bat                   # 1-click Windows launcher (starts both)
+├── run_app.ps1                   # 1-click PowerShell launcher (starts both)
+├── requirements.txt              # Unified local monorepo requirements
+└── README.md                     # Project documentation
 ```
 
-## 4. Installation
+## 4. Installation & Local Development
+
+### Option A: 1-Click Launchers (Windows)
+Double-click `run_app.bat` or run:
+```powershell
+.\run_app.ps1
 ```
+This automatically boots FastAPI on port 8000 in the background and opens the Streamlit frontend in your browser.
+
+### Option B: Manual Execution
+**Terminal 1 (Backend):**
+```bash
+cd backend
 pip install -r requirements.txt
+uvicorn api:app --reload --port 8000
 ```
 
-## 5. How to Run
-```
-python ml/train.py      # train and save the model
-python ml/evaluate.py   # evaluate on the held-out test set
+**Terminal 2 (Frontend):**
+```bash
+cd frontend
+pip install -r requirements.txt
 streamlit run app.py
-uvicorn backend.api:app --reload   # optional API
 ```
+
+---
+
+## 5. Publishing to the Cloud ☁️
+
+Both the **Frontend** and **Backend** are fully separated and containerized for zero-friction cloud publishing.
+
+### 🌐 Deploy Frontend (Streamlit Community Cloud)
+1. Push repository to GitHub.
+2. Go to **[share.streamlit.io](https://share.streamlit.io)** and click **Create app**.
+3. Set **Main file path** to `frontend/app.py`.
+4. (Optional) Under **Advanced settings -> Secrets**, add:
+   ```toml
+   BACKEND_URL = "https://your-backend-api.onrender.com"
+   ```
+5. Click **Deploy**!
+
+### ⚙️ Deploy Backend (Render / Railway / Docker)
+1. In **[Render](https://render.com)**, create a new **Web Service** connected to your repository.
+2. Set **Root Directory** to `backend`.
+3. Set **Build Command**: `pip install -r requirements.txt`
+4. Set **Start Command**: `uvicorn api:app --host 0.0.0.0 --port $PORT`
+5. Click **Create Web Service**. Copy your live URL and connect it to your Streamlit frontend!
 
 ## 6. Methodology
 - **Dataset:** Amazon Fine Food Reviews (Kaggle), accessed 15 November 2026.
