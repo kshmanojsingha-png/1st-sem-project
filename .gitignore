@@ -19,6 +19,8 @@ data/Reviews.csv
 
 # Temporary / log files
 *.tmp
+~$*.docx
+Report_Updated.docx
 outputs/uvicorn_*.txt
 
 # IDE / System
